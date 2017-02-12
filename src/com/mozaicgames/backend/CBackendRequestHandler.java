@@ -3,25 +3,28 @@ package com.mozaicgames.backend;
 import java.io.IOException;
 
 import java.sql.Connection;
+
+import javax.sql.DataSource;
+
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 
 public class CBackendRequestHandler implements HttpHandler 
 {
-	private CBackendDatabaseAutentificationData			mSqlAutentificationData = null;
+	private DataSource			mSqlDataSource = null;
 
-	protected CBackendRequestHandler(CBackendDatabaseAutentificationData sqlData) throws Exception
+	protected CBackendRequestHandler(DataSource sqlDataSource) throws Exception
 	{
-		mSqlAutentificationData = sqlData;
-		if (mSqlAutentificationData == null)
+		mSqlDataSource = sqlDataSource;
+		if (mSqlDataSource == null)
 		{
 			throw new Exception("Invalid argument");
 		}
 	}
 	
-	protected CBackendDatabaseAutentificationData getSqlAutentificationData()
+	protected DataSource getDataSource()
 	{
-		return mSqlAutentificationData;
+		return mSqlDataSource;
 	}
 	
 	@Override

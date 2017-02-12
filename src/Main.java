@@ -1,8 +1,7 @@
 
-
-import com.mozaicgames.backend.CBackendDatabaseAutentificationData;
 import com.mozaicgames.backend.CBackendServer;
 import com.mozaicgames.backend.CHandlerRegisterDevice;
+import com.zaxxer.hikari.HikariDataSource;
 
 public class Main {
 
@@ -39,17 +38,24 @@ public class Main {
             }
         }
 		
-        String url = "jdbc:mysql://localhost:3306/mozaic";
-        String user = "dev";
-        String password = "Mozaic123!";
-
-        CBackendDatabaseAutentificationData autentificationData = new CBackendDatabaseAutentificationData(url, user, password);
+        HikariDataSource ds = new HikariDataSource();
+        ds.setJdbcUrl("jdbc:mysql://localhost:3306/mozaic");
+        ds.setUsername("dev");
+        ds.setPassword("Mozaic123!");
         
 		CBackendServer backendServer = new CBackendServer();
-		
-		backendServer.registerHandler("register_device", new CHandlerRegisterDevice(autentificationData));
+		try 
+        {
+			backendServer.registerHandler("register_device", new CHandlerRegisterDevice(ds));
+        }
+		catch (Exception e)
+		{
+			System.err.println("Register handler Null pointer exception: " + e.getMessage());
+            return;
+		}
 		
 		backendServer.startOnPort(port);
+		System.err.println("Server running on port: " + port);
 	}
 
 }
