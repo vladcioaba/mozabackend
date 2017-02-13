@@ -1,9 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
 	<classpathentry kind="src" path="src"/>
-	<classpathentry kind="src" path="external/HikariCP/src/main/java"/>
+	<classpathentry kind="src" path="external/JSON-java"/>
 	<classpathentry exported="true" kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-	<classpathentry kind="lib" path="libs/hibernate-core-4.1.12.final.jar"/>
 	<classpathentry kind="lib" path="libs/mysql-connector-java-5.1.40-bin.jar"/>
+	<classpathentry kind="lib" path="libs/commons-dbcp2-2.1.1.jar"/>
+	<classpathentry kind="lib" path="libs/commons-pool2-2.4.2.jar"/>
+	<classpathentry kind="lib" path="libs/commons-logging-1.2.jar"/>
+	<classpathentry kind="lib" path="libs/commons-codec-1.10.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

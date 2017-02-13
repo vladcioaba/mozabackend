@@ -42,6 +42,7 @@ public class CBackendServer {
 		
 		pHttpServer.setExecutor(Executors.newCachedThreadPool());
 		pHttpServer.start();		
+		System.err.println("Server running on port: " + port);
 		return true;
 	}
 	

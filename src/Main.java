@@ -1,7 +1,8 @@
 
+import org.apache.commons.dbcp2.BasicDataSource;
+
 import com.mozaicgames.backend.CBackendServer;
 import com.mozaicgames.backend.CHandlerRegisterDevice;
-import com.zaxxer.hikari.HikariDataSource;
 
 public class Main {
 
@@ -37,16 +38,18 @@ public class Main {
                 return;
             }
         }
-		
-        HikariDataSource ds = new HikariDataSource();
-        ds.setJdbcUrl("jdbc:mysql://localhost:3306/mozaic");
+        
+        BasicDataSource ds = new BasicDataSource();
+        ds.setDriverClassName("com.mysql.jdbc.Driver");
+        ds.setUrl("jdbc:mysql://localhost:3306/mozaic");
         ds.setUsername("dev");
         ds.setPassword("Mozaic123!");
         
+        final String encriptionCode = "mozadev";
 		CBackendServer backendServer = new CBackendServer();
 		try 
         {
-			backendServer.registerHandler("register_device", new CHandlerRegisterDevice(ds));
+			backendServer.registerHandler("register_device", new CHandlerRegisterDevice(ds, encriptionCode));
         }
 		catch (Exception e)
 		{
@@ -55,7 +58,6 @@ public class Main {
 		}
 		
 		backendServer.startOnPort(port);
-		System.err.println("Server running on port: " + port);
 	}
 
 }
