@@ -8,7 +8,8 @@ import java.util.concurrent.Executors;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
 
-public class CBackendServer {
+public class CBackendServer 
+{
 	
 	private HttpServer 						pHttpServer = null;
 	private Map<String, HttpHandler>		pHandlers = new Hashtable<>();

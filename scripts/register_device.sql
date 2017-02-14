@@ -4,9 +4,10 @@ CREATE TABLE `devices` (
   `device_model` varchar(45) NOT NULL,
   `device_os_version` varchar(45) NOT NULL,
   `device_platform` varchar(45) NOT NULL,
-  `device_creation_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `device_app_version` varchar(45) NOT NULL,
   `device_ip` varchar(45) NOT NULL,
+  `device_creation_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `device_blocked` tinyint(4) NOT NULL DEFAULT '0',
   PRIMARY KEY (`device_id`),
   UNIQUE KEY `device_id_UNIQUE` (`device_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1

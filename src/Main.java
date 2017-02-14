@@ -3,9 +3,11 @@ import org.apache.commons.dbcp2.BasicDataSource;
 
 import com.mozaicgames.backend.CBackendServer;
 import com.mozaicgames.backend.CHandlerRegisterDevice;
+import com.mozaicgames.backend.CHandlerRoot;
 
-public class Main {
-
+public class Main 
+{
+	
 	public static void main(String[] args) 
 	{
 		int port = 8081;
@@ -49,6 +51,7 @@ public class Main {
 		CBackendServer backendServer = new CBackendServer();
 		try 
         {
+			backendServer.registerHandler("", new CHandlerRoot(ds));
 			backendServer.registerHandler("register_device", new CHandlerRegisterDevice(ds, encriptionCode));
         }
 		catch (Exception e)

@@ -34,7 +34,7 @@ public class CHandlerRegisterDevice extends CBackendRequestHandler
 	@Override
     public void handle(HttpExchange t) throws IOException 
 	{
-		int intResponseCode = 200;
+		EBackendResponsStatusCode intResponseCode = EBackendResponsStatusCode.STATUS_OK;
 		String strResponseBody = "";
 		String strRequestBody = t.getRequestBody().toString();
 		
@@ -55,7 +55,7 @@ public class CHandlerRegisterDevice extends CBackendRequestHandler
 		{
 			// bad input
 			// return database connection error - status retry
-			intResponseCode = 1;
+			intResponseCode = EBackendResponsStatusCode.INVALID_DATA;
 			strResponseBody = "Bad input data!";
 			outputResponse(t, intResponseCode, strResponseBody);
 			return;
@@ -72,7 +72,7 @@ public class CHandlerRegisterDevice extends CBackendRequestHandler
 		{
 			// could not get a connection
 			// return database connection error - status retry
-			intResponseCode = 2;
+			intResponseCode = EBackendResponsStatusCode.INTERNAL_ERROR;
 			strResponseBody = e.getMessage();
 			outputResponse(t, intResponseCode, strResponseBody);
 			return;
@@ -109,15 +109,10 @@ public class CHandlerRegisterDevice extends CBackendRequestHandler
 		{
 			// error processing statement
 			// return statement error - status error
-			intResponseCode = 3;
+			intResponseCode = EBackendResponsStatusCode.INTERNAL_ERROR;
 			outputResponse(t, intResponseCode, strResponseBody);
 			return;
-		}
-		
-		if (intResponseCode == 200)
-		{
-			// return new device ID;
-		}
+		}		
 		
 		outputResponse(t, intResponseCode, strResponseBody);
 	}

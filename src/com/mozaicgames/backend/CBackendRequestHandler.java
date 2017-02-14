@@ -30,11 +30,11 @@ public class CBackendRequestHandler implements HttpHandler
 	{
     }	
 	
-	protected void outputResponse(HttpExchange excenge, int responseCode, String responseBody)
+	protected void outputResponse(HttpExchange excenge, EBackendResponsStatusCode invalidRequest, String responseBody)
 	{
 		try
 		{
-			excenge.sendResponseHeaders(responseCode, responseBody.length());
+			excenge.sendResponseHeaders(invalidRequest.getValue(), responseBody.length());
 			OutputStream os = excenge.getResponseBody();
 			os.write(responseBody.getBytes());
 			os.close();
