@@ -1,5 +1,5 @@
 CREATE TABLE `devices` (
-  `device_id` bigint(20) NOT NULL,
+  `device_id` bigint(20) NOT NULL AUTO_INCREMENT,
   `device_token` varchar(45) NOT NULL,
   `device_model` varchar(45) NOT NULL,
   `device_os_version` varchar(45) NOT NULL,
@@ -16,4 +16,4 @@ CREATE TABLE `devices` (
 select device_id from devices order by device_id desc limit 1;
 
 # insert new data
-insert into  devices ( device_token, device_model , device_os_version , device_platform ) values ( HEX(AES_ENCRYPT( LAST_INSERT_ID() + 1, 'mozadev')), 'iphone' , '7.1' , 'ios'  );
+insert into  devices ( device_token, device_model, device_os_version, device_platform, device_app_version, device_ip ) values values ( HEX(AES_ENCRYPT( LAST_INSERT_ID() + 1, 'mozadev')), 'iphone' , '7.1' , 'ios', '1.0.1', '192.1.1.1' );

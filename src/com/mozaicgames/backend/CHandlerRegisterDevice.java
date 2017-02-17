@@ -1,6 +1,8 @@
 package com.mozaicgames.backend;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -20,10 +22,12 @@ public class CHandlerRegisterDevice extends CBackendRequestHandler
 
 	private String mEncriptionCode				= null; 
 	
-	private String mKeyDeviceModel				= "device_model";
-	private String mKeyDeviceOsVersion 			= "device_os_version";
-	private String mKeyDevicePlatform			= "device_platform";
-	private String mKeyDeviceAppVersion			= "device_app_version";
+	private String mKeyData						= "data";
+	private String mKeyClientVersion			= "client_version";
+
+	private String mKeyDataDeviceModel			= "device_model";
+	private String mKeyDataDeviceOsVersion 		= "device_os_version";
+	private String mKeyDataDevicePlatform		= "device_platform";
 	
 	public CHandlerRegisterDevice(DataSource sqlDataSource, String encriptionConde) throws Exception
 	{
@@ -33,23 +37,40 @@ public class CHandlerRegisterDevice extends CBackendRequestHandler
 
 	@Override
     public void handle(HttpExchange t) throws IOException 
-	{
+	{		
 		EBackendResponsStatusCode intResponseCode = EBackendResponsStatusCode.STATUS_OK;
 		String strResponseBody = "";
-		String strRequestBody = t.getRequestBody().toString();
+		
+		InputStreamReader isr =  new InputStreamReader(t.getRequestBody(), "utf-8");
+		BufferedReader br = new BufferedReader(isr);
+		String strRequestBody = "";
+		int b;
+		while ((b = br.read()) != -1) {
+			strRequestBody += (char)b;
+		}
+		br.close();
+		isr.close();
+		
 		
 		JSONObject jsonRequestBody = null;
+		JSONObject jsonRequestData = null;
 		try 
 		{
 			jsonRequestBody = new JSONObject(strRequestBody);
 			
-			if (jsonRequestBody.has(mKeyDeviceModel) == false ||
-				jsonRequestBody.has(mKeyDeviceOsVersion) == false ||
-				jsonRequestBody.has(mKeyDevicePlatform) == false ||
-				jsonRequestBody.has(mKeyDeviceAppVersion) == false)
+			if (jsonRequestBody.has(mKeyData) == false ||
+				jsonRequestBody.has(mKeyClientVersion) == false)
 			{
 				throw new JSONException("missing variables");
 			}
+			
+			jsonRequestData = jsonRequestBody.getJSONObject(mKeyData);			
+			if (jsonRequestData.has(mKeyDataDeviceModel) == false ||
+				jsonRequestData.has(mKeyDataDeviceOsVersion) == false ||
+				jsonRequestData.has(mKeyDataDevicePlatform) == false)
+			{
+				throw new JSONException("missing variables");
+			}			
 		}
 		catch (JSONException e)
 		{
@@ -84,36 +105,53 @@ public class CHandlerRegisterDevice extends CBackendRequestHandler
 			sqlStatement = sqlConnection.createStatement(ResultSet.TYPE_FORWARD_ONLY , ResultSet.CONCUR_UPDATABLE);
 			
 			// get last user id
-			int device_id = -1;
+			long device_id = 0;
 			ResultSet restultLastInsert = sqlStatement.executeQuery("select device_id from devices order by device_id desc limit 1");
 			while (restultLastInsert.next())
 			{
-				device_id = restultLastInsert.getInt(1);
+				device_id = restultLastInsert.getLong(1);
 			}
 			
-			AdvancedEncryptionStandard encripter = new AdvancedEncryptionStandard(mEncriptionCode);
+			AdvancedEncryptionStandard encripter = new AdvancedEncryptionStandard(mEncriptionCode, "RC4");
 			newUUID = encripter.encrypt(String.valueOf(device_id));
 			
 			String remoteAddress = t.getRemoteAddress().getAddress().toString();
 			
-			sqlStatement.executeQuery("insert into  devices ( device_token, device_model, device_os_version, device_platform, device_id ) values"
-							 + " '" + newUUID + "' ,"
-							 + " '" + jsonRequestBody.getString(mKeyDeviceModel) + "' ,"
-							 + " '" + jsonRequestBody.getString(mKeyDeviceOsVersion) + "' ,"
-							 + " '" + jsonRequestBody.getString(mKeyDevicePlatform) + "' ,"
-							 + " '" + jsonRequestBody.getString(mKeyDeviceAppVersion) + "' ,"
-							 + " '" + remoteAddress + "' ,"
-							 + " );");
+			sqlStatement.executeUpdate("insert into  devices ( device_token, device_model, device_os_version, device_platform, device_app_version, device_ip ) values "
+							 + "('" + newUUID + "' ,"
+							 + " '" + jsonRequestData.getString(mKeyDataDeviceModel) + "' ,"
+							 + " '" + jsonRequestData.getString(mKeyDataDeviceOsVersion) + "' ,"
+							 + " '" + jsonRequestData.getString(mKeyDataDevicePlatform) + "' ,"
+							 + " '" + jsonRequestBody.getString(mKeyClientVersion) + "' ,"
+							 + " '" + remoteAddress + "');");		
+			
+			JSONObject jsonResponse = new JSONObject();
+			JSONObject jsonResponseDataToken = new JSONObject();
+			jsonResponseDataToken.put("device_token", newUUID);
+			jsonResponse.put("data", jsonResponseDataToken);
+			strResponseBody = jsonResponse.toString();
+			outputResponse(t, intResponseCode, strResponseBody);
 		}
 		catch (Exception e)
 		{
 			// error processing statement
 			// return statement error - status error
 			intResponseCode = EBackendResponsStatusCode.INTERNAL_ERROR;
+			strResponseBody = e.getMessage();
 			outputResponse(t, intResponseCode, strResponseBody);
-			return;
-		}		
-		
-		outputResponse(t, intResponseCode, strResponseBody);
+		}
+		finally
+		{
+			try {
+				sqlStatement.close();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+			try {
+				sqlConnection.close();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
 	}
 }

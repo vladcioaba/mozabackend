@@ -41,14 +41,25 @@ public class Main
             }
         }
         
-        BasicDataSource ds = new BasicDataSource();
+        BasicDataSource ds = null;
+        
+        try 
+        {
+        	ds = new BasicDataSource();
+        }
+        catch (Exception e)
+        {
+        	System.err.println(e.getMessage());
+            return;
+        }
+        
         ds.setDriverClassName("com.mysql.jdbc.Driver");
         ds.setUrl("jdbc:mysql://localhost:3306/mozaic");
         ds.setUsername("dev");
         ds.setPassword("Mozaic123!");
         
-        final String encriptionCode = "mozadev";
-		CBackendServer backendServer = new CBackendServer();
+        final String encriptionCode = "mozadev123";
+    	CBackendServer backendServer = new CBackendServer();
 		try 
         {
 			backendServer.registerHandler("", new CHandlerRoot(ds));
