@@ -115,7 +115,7 @@ public class CHandlerRegisterDevice extends CBackendRequestHandler
 			AdvancedEncryptionStandard encripter = new AdvancedEncryptionStandard(mEncriptionCode, "RC4");
 			newUUID = encripter.encrypt(String.valueOf(device_id));
 			
-			String remoteAddress = t.getRemoteAddress().getAddress().toString();
+			String remoteAddress = t.getRemoteAddress().getAddress().getHostAddress();
 			
 			sqlStatement.executeUpdate("insert into  devices ( device_token, device_model, device_os_version, device_platform, device_app_version, device_ip ) values "
 							 + "('" + newUUID + "' ,"
