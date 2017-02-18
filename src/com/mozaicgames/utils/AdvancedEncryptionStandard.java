@@ -1,6 +1,11 @@
 package com.mozaicgames.utils;
 
+import java.security.spec.KeySpec;
+
 import javax.crypto.Cipher;
+import javax.crypto.SecretKey;
+import javax.crypto.SecretKeyFactory;
+import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
 
 import org.apache.commons.codec.binary.Base64;
@@ -9,7 +14,7 @@ import org.apache.commons.codec.binary.Base64;
 public class AdvancedEncryptionStandard {
 
 	private String encryptionKey;
-	private String encryptionAlgorithm = "SHA";
+	private String encryptionAlgorithm;
     
     public AdvancedEncryptionStandard(String encryptionKey, String encryptionAlgorithm)
     {
@@ -33,9 +38,13 @@ public class AdvancedEncryptionStandard {
 
     private Cipher getCipher(int cipherMode) throws Exception
     {
-        SecretKeySpec keySpecification = new SecretKeySpec(encryptionKey.getBytes("UTF-8"), encryptionAlgorithm);
+    	SecretKeyFactory skf = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA1");
+        KeySpec spec = new PBEKeySpec(encryptionKey.toCharArray(), encryptionKey.getBytes(), 64, 128);
+        SecretKey tmp = skf.generateSecret(spec);
+        SecretKey key = new SecretKeySpec(tmp.getEncoded(), encryptionAlgorithm);
+        
         Cipher cipher = Cipher.getInstance(encryptionAlgorithm);
-        cipher.init(cipherMode, keySpecification);
+        cipher.init(cipherMode, key);
 
         return cipher;
     }

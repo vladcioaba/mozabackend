@@ -22,13 +22,11 @@ public class CHandlerRegisterDevice extends CBackendRequestHandler
 
 	private String mEncriptionCode				= null; 
 	
-	private String mKeyData						= "data";
-	private String mKeyClientVersion			= "client_version";
+	private String mKeyDeviceModel			= "device_model";
+	private String mKeyDeviceOsVersion 		= "device_os_version";
+	private String mKeyDevicePlatform		= "device_platform";
+	private String mKeyClientVersion		= "client_version";
 
-	private String mKeyDataDeviceModel			= "device_model";
-	private String mKeyDataDeviceOsVersion 		= "device_os_version";
-	private String mKeyDataDevicePlatform		= "device_platform";
-	
 	public CHandlerRegisterDevice(DataSource sqlDataSource, String encriptionConde) throws Exception
 	{
 		super(sqlDataSource);
@@ -53,24 +51,17 @@ public class CHandlerRegisterDevice extends CBackendRequestHandler
 		
 		
 		JSONObject jsonRequestBody = null;
-		JSONObject jsonRequestData = null;
 		try 
 		{
 			jsonRequestBody = new JSONObject(strRequestBody);
 			
-			if (jsonRequestBody.has(mKeyData) == false ||
+			if (jsonRequestBody.has(mKeyDeviceModel) == false ||
+				jsonRequestBody.has(mKeyDeviceOsVersion) == false ||
+				jsonRequestBody.has(mKeyDevicePlatform) == false ||
 				jsonRequestBody.has(mKeyClientVersion) == false)
 			{
-				throw new JSONException("missing variables");
+				throw new JSONException("Missing variables");
 			}
-			
-			jsonRequestData = jsonRequestBody.getJSONObject(mKeyData);			
-			if (jsonRequestData.has(mKeyDataDeviceModel) == false ||
-				jsonRequestData.has(mKeyDataDeviceOsVersion) == false ||
-				jsonRequestData.has(mKeyDataDevicePlatform) == false)
-			{
-				throw new JSONException("missing variables");
-			}			
 		}
 		catch (JSONException e)
 		{
@@ -98,8 +89,7 @@ public class CHandlerRegisterDevice extends CBackendRequestHandler
 			outputResponse(t, intResponseCode, strResponseBody);
 			return;
 		}		
-				
-		String newUUID = null;
+		
 		try 
 		{
 			sqlStatement = sqlConnection.createStatement(ResultSet.TYPE_FORWARD_ONLY , ResultSet.CONCUR_UPDATABLE);
@@ -112,23 +102,20 @@ public class CHandlerRegisterDevice extends CBackendRequestHandler
 				device_id = restultLastInsert.getLong(1);
 			}
 			
-			AdvancedEncryptionStandard encripter = new AdvancedEncryptionStandard(mEncriptionCode, "RC4");
-			newUUID = encripter.encrypt(String.valueOf(device_id));
-			
+			AdvancedEncryptionStandard encripter = new AdvancedEncryptionStandard(mEncriptionCode, "AES");
+			String newUUID = encripter.encrypt(String.valueOf(device_id));
 			String remoteAddress = t.getRemoteAddress().getAddress().getHostAddress();
 			
 			sqlStatement.executeUpdate("insert into  devices ( device_token, device_model, device_os_version, device_platform, device_app_version, device_ip ) values "
 							 + "('" + newUUID + "' ,"
-							 + " '" + jsonRequestData.getString(mKeyDataDeviceModel) + "' ,"
-							 + " '" + jsonRequestData.getString(mKeyDataDeviceOsVersion) + "' ,"
-							 + " '" + jsonRequestData.getString(mKeyDataDevicePlatform) + "' ,"
+							 + " '" + jsonRequestBody.getString(mKeyDeviceModel) + "' ,"
+							 + " '" + jsonRequestBody.getString(mKeyDeviceOsVersion) + "' ,"
+							 + " '" + jsonRequestBody.getString(mKeyDevicePlatform) + "' ,"
 							 + " '" + jsonRequestBody.getString(mKeyClientVersion) + "' ,"
 							 + " '" + remoteAddress + "');");		
 			
 			JSONObject jsonResponse = new JSONObject();
-			JSONObject jsonResponseDataToken = new JSONObject();
-			jsonResponseDataToken.put("device_token", newUUID);
-			jsonResponse.put("data", jsonResponseDataToken);
+			jsonResponse.put("device_token", newUUID);
 			strResponseBody = jsonResponse.toString();
 			outputResponse(t, intResponseCode, strResponseBody);
 		}

@@ -11,8 +11,8 @@ import com.sun.net.httpserver.HttpServer;
 public class CBackendServer 
 {
 	
-	private HttpServer 						pHttpServer = null;
-	private Map<String, HttpHandler>		pHandlers = new Hashtable<>();
+	private HttpServer 						mHttpServer = null;
+	private Map<String, HttpHandler>		mHandlers = new Hashtable<>();
 
 	public CBackendServer()
 	{
@@ -20,14 +20,19 @@ public class CBackendServer
 	
 	public void registerHandler(String key, HttpHandler handler)
 	{
-		pHandlers.put(key, handler);
+		mHandlers.put(key, handler);
+	}
+	
+	public HttpHandler getHandlerFor(String key)
+	{
+		return mHandlers.get(key); 
 	}
 	
 	public boolean startOnPort(int port)
 	{
 		try 
 		{
-			pHttpServer = HttpServer.create(new InetSocketAddress(port), 0);
+			mHttpServer = HttpServer.create(new InetSocketAddress(port), 0);
 		} 
 		catch (Exception ex)
 		{
@@ -36,20 +41,20 @@ public class CBackendServer
 		}
 		
 		// register handlers
-		for(String key: pHandlers.keySet())
+		for(String key: mHandlers.keySet())
 		{
-			pHttpServer.createContext("/" + key, pHandlers.get(key));
+			mHttpServer.createContext("/" + key, mHandlers.get(key));
 		}
 		
-		pHttpServer.setExecutor(Executors.newCachedThreadPool());
-		pHttpServer.start();		
+		mHttpServer.setExecutor(Executors.newCachedThreadPool());
+		mHttpServer.start();	
 		System.err.println("Server running on port: " + port);
 		return true;
 	}
 	
 	public void stop()
 	{
-		
+		mHttpServer.stop(0);
 	}
 	
 }
