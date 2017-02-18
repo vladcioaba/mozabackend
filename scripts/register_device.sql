@@ -1,5 +1,6 @@
 CREATE TABLE `devices` (
   `device_id` bigint(20) NOT NULL AUTO_INCREMENT,
+  `device_user_id` int(11) DEFAULT '0',
   `device_token` varchar(45) NOT NULL,
   `device_model` varchar(45) NOT NULL,
   `device_os_version` varchar(45) NOT NULL,
@@ -10,7 +11,7 @@ CREATE TABLE `devices` (
   `device_blocked` tinyint(4) NOT NULL DEFAULT '0',
   PRIMARY KEY (`device_id`),
   UNIQUE KEY `device_id_UNIQUE` (`device_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=latin1
 
 # get last device id
 select device_id from devices order by device_id desc limit 1;

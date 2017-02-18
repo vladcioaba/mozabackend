@@ -13,22 +13,19 @@ import javax.sql.DataSource;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import com.mozaicgames.backend.CBackendRequestHandler;
 import com.mozaicgames.utils.AdvancedEncryptionStandard;
 import com.mozaicgames.utils.Utils;
 import com.sun.net.httpserver.HttpExchange;
 
-public class CHandlerRegisterDevice extends CBackendRequestHandler 
+public class CHandlerUpdateSession extends CBackendRequestHandler 
 {
 
 	private String mEncriptionCode			= null; 
 	
-	private String mKeyDeviceModel			= "device_model";
-	private String mKeyDeviceOsVersion 		= "device_os_version";
-	private String mKeyDevicePlatform		= "device_platform";
+	private String mKeyClientDeviceToken	= "client_device_token";
 	private String mKeyClientVersion		= "client_version";
 
-	public CHandlerRegisterDevice(DataSource sqlDataSource, String encriptionConde) throws Exception
+	public CHandlerUpdateSession(DataSource sqlDataSource, String encriptionConde) throws Exception
 	{
 		super(sqlDataSource);
 		mEncriptionCode = encriptionConde;
@@ -40,15 +37,13 @@ public class CHandlerRegisterDevice extends CBackendRequestHandler
 		EBackendResponsStatusCode intResponseCode = EBackendResponsStatusCode.STATUS_OK;
 		String strResponseBody = "";
 		String strRequestBody = Utils.getStringFromStream(t.getRequestBody());
-		
+				
 		JSONObject jsonRequestBody = null;
 		try 
 		{
 			jsonRequestBody = new JSONObject(strRequestBody);
 			
-			if (jsonRequestBody.has(mKeyDeviceModel) == false ||
-				jsonRequestBody.has(mKeyDeviceOsVersion) == false ||
-				jsonRequestBody.has(mKeyDevicePlatform) == false ||
+			if (jsonRequestBody.has(mKeyClientDeviceToken) == false ||
 				jsonRequestBody.has(mKeyClientVersion) == false)
 			{
 				throw new JSONException("Missing variables");
@@ -99,9 +94,6 @@ public class CHandlerRegisterDevice extends CBackendRequestHandler
 			
 			sqlStatement.executeUpdate("insert into  devices ( device_token, device_model, device_os_version, device_platform, device_app_version, device_ip ) values "
 							 + "('" + newUUID + "' ,"
-							 + " '" + jsonRequestBody.getString(mKeyDeviceModel) + "' ,"
-							 + " '" + jsonRequestBody.getString(mKeyDeviceOsVersion) + "' ,"
-							 + " '" + jsonRequestBody.getString(mKeyDevicePlatform) + "' ,"
 							 + " '" + jsonRequestBody.getString(mKeyClientVersion) + "' ,"
 							 + " '" + remoteAddress + "');");		
 			
