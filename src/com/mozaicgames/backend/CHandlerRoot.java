@@ -9,7 +9,7 @@ import com.sun.net.httpserver.HttpExchange;
 public class CHandlerRoot extends CBackendRequestHandler 
 {
 	public CHandlerRoot(DataSource sqlDataSource) throws Exception {
-		super(sqlDataSource);
+		super(sqlDataSource, "");
 	}
 
 	@Override

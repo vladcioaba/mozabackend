@@ -1,8 +1,6 @@
 package com.mozaicgames.backend;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -27,7 +25,7 @@ public class CHandlerUpdateSession extends CBackendRequestHandler
 
 	public CHandlerUpdateSession(DataSource sqlDataSource, String encriptionConde) throws Exception
 	{
-		super(sqlDataSource);
+		super(sqlDataSource, "");
 		mEncriptionCode = encriptionConde;
 	}
 

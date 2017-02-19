@@ -20,5 +20,42 @@ public class Utils {
 		isr.close();
 		return strStream; 
 	}
+	
+	public static int compareStringIntegerValue(String s1, String s2)  
+	{  
+		final String delimeter = "\\."; 
+		String[] s1Tokens = s1.split(delimeter);  
+		String[] s2Tokens = s2.split(delimeter);  
+
+		int length = Math.max(s1Tokens.length, s2Tokens.length);
+		for (int i = 0; i < length; i++)  
+		{  
+			int s1Value = 0;
+			if (i < s1Tokens.length)
+			{
+				s1Value = Integer.parseInt(s1Tokens[i]);
+			}
+			
+		 	int s2Value = 0;
+		 	if (i < s2Tokens.length)
+		 	{
+		 		s2Value = Integer.parseInt(s2Tokens[i]);
+		 	}
+		 	
+		 	if (s1Value == s2Value)
+		 	{
+		 		continue;
+		 	}
+		 	if (s1Value < s2Value)
+		 	{
+		 		return -1;
+		 	}
+		 	else
+		 	{
+		 		return 1;
+		 	}
+		}
+		return 0;  //values are equal
+	 } 
 
 }

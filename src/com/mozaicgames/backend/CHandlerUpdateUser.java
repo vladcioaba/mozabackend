@@ -25,7 +25,7 @@ public class CHandlerUpdateUser extends CBackendRequestHandler
 
 	public CHandlerUpdateUser(DataSource sqlDataSource, String encriptionConde) throws Exception
 	{
-		super(sqlDataSource);
+		super(sqlDataSource, "");
 		mEncriptionCode = encriptionConde;
 	}
 

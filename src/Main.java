@@ -2,7 +2,7 @@
 import org.apache.commons.dbcp2.BasicDataSource;
 
 import com.mozaicgames.backend.CBackendServer;
-import com.mozaicgames.backend.CHandlerRegisterDevice;
+import com.mozaicgames.backend.CHandlerRegisterUserAnonymous;
 import com.mozaicgames.backend.CHandlerRoot;
 
 public class Main 
@@ -58,12 +58,13 @@ public class Main
         ds.setUsername("dev");
         ds.setPassword("Mozaic123!");
         
+        final String minClientVersionAllowed = "1.0.0";
         final String encriptionCode = "mozadev123";
     	CBackendServer backendServer = new CBackendServer();
 		try 
         {
 			backendServer.registerHandler("", new CHandlerRoot(ds));
-			backendServer.registerHandler("register_device", new CHandlerRegisterDevice(ds, encriptionCode));
+			backendServer.registerHandler("register_user_anonymous", new CHandlerRegisterUserAnonymous(ds, encriptionCode, minClientVersionAllowed));
         }
 		catch (Exception e)
 		{

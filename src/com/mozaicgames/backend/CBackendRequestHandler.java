@@ -10,19 +10,26 @@ import com.sun.net.httpserver.HttpHandler;
 public class CBackendRequestHandler implements HttpHandler 
 {
 	private DataSource			mSqlDataSource = null;
+	private String 				mMinClientVersionAllowed	= null;
 
-	protected CBackendRequestHandler(DataSource sqlDataSource) throws Exception
+	protected CBackendRequestHandler(DataSource sqlDataSource, String minClientVersionAllowed) throws Exception
 	{
 		mSqlDataSource = sqlDataSource;
 		if (mSqlDataSource == null)
 		{
 			throw new Exception("Invalid argument");
 		}
+		mMinClientVersionAllowed = minClientVersionAllowed;
 	}
 	
 	protected DataSource getDataSource()
 	{
 		return mSqlDataSource;
+	}
+	
+	protected String getMinClientVersionAllowed()
+	{
+		return mMinClientVersionAllowed;
 	}
 	
 	@Override
