@@ -9,8 +9,8 @@ import com.sun.net.httpserver.HttpHandler;
 
 public class CBackendRequestHandler implements HttpHandler 
 {
-	private DataSource			mSqlDataSource = null;
-	private String 				mMinClientVersionAllowed	= null;
+	private final DataSource			mSqlDataSource;
+	private final String 				mMinClientVersionAllowed;
 
 	protected CBackendRequestHandler(DataSource sqlDataSource, String minClientVersionAllowed) throws Exception
 	{

@@ -16,15 +16,17 @@ import com.mozaicgames.utils.AdvancedEncryptionStandard;
 import com.mozaicgames.utils.Utils;
 import com.sun.net.httpserver.HttpExchange;
 
-public class CHandlerRegisterUserAnonymous extends CBackendRequestHandler 
+public class CHandlerRegisterDevice extends CBackendRequestHandler 
 {
 
 	private final String 							mEncriptionCode;
 	
-	private final String mKeyDeviceToken			= "device_token";
+	private final String mKeyDeviceModel			= "device_model";
+	private final String mKeyDeviceOsVersion 		= "device_os_version";
+	private final String mKeyDevicePlatform			= "device_platform";
 	private final String mKeyClientVersion			= "client_version";
 
-	public CHandlerRegisterUserAnonymous(DataSource sqlDataSource, String encriptionConde, String minClientVersionAllowed) throws Exception
+	public CHandlerRegisterDevice(DataSource sqlDataSource, String encriptionConde, String minClientVersionAllowed) throws Exception
 	{
 		super(sqlDataSource, minClientVersionAllowed);
 		mEncriptionCode = encriptionConde;
@@ -38,12 +40,16 @@ public class CHandlerRegisterUserAnonymous extends CBackendRequestHandler
 		String strRequestBody = Utils.getStringFromStream(t.getRequestBody());
 		
 		String clientVersion = null;
-		String deviceToken = null;
+		String deviceModel = null;
+		String deviceOsVerrsion = null;
+		String devicePlatform = null;
 		try 
 		{
-			JSONObject jsonRequestBody = new JSONObject(strRequestBody);
+			JSONObject jsonRequestBody = new JSONObject(strRequestBody);			
 			clientVersion = jsonRequestBody.getString(mKeyClientVersion);
-			deviceToken = jsonRequestBody.getString(mKeyDeviceToken);
+			deviceModel = jsonRequestBody.getString(mKeyDeviceModel);
+			deviceOsVerrsion= jsonRequestBody.getString(mKeyDeviceOsVersion);
+			devicePlatform = jsonRequestBody.getString(mKeyDevicePlatform);			
 		}		
 		catch (JSONException e)
 		{
@@ -71,52 +77,37 @@ public class CHandlerRegisterUserAnonymous extends CBackendRequestHandler
 		{
 			sqlConnection = getDataSource().getConnection();
 			sqlConnection.setAutoCommit(false);
-		}
-		catch (SQLException e)
-		{
-			// could not get a connection
-			// return database connection error - status retry
-			intResponseCode = EBackendResponsStatusCode.INTERNAL_ERROR;
-			strResponseBody = e.getMessage();
-			outputResponse(t, intResponseCode, strResponseBody);
-			return;
-		}		
-		
-		try 
-		{
-			AdvancedEncryptionStandard encripter = new AdvancedEncryptionStandard(mEncriptionCode, "AES");
-			// decrypt device id from token
-			final long deviceId = Long.parseLong(encripter.decrypt(deviceToken));
-			
 			sqlStatement = sqlConnection.createStatement(ResultSet.TYPE_FORWARD_ONLY , ResultSet.CONCUR_UPDATABLE);
-					
-			// create new user
-			int affectedRows = sqlStatement.executeUpdate("insert into users values ();", Statement.RETURN_GENERATED_KEYS);			
+			
+			final String remoteAddress = t.getRemoteAddress().getAddress().getHostAddress();
+			
+			// create new device
+			int affectedRows = sqlStatement.executeUpdate("insert into devices ( device_model, device_os_version, device_platform, device_app_version, device_ip ) values "
+							 + "('" + deviceModel + "' ,"
+							 + " '" + deviceOsVerrsion + "' ,"
+							 + " '" + devicePlatform + "' ,"
+							 + " '" + clientVersion + "' ,"
+							 + " '" + remoteAddress + "');", Statement.RETURN_GENERATED_KEYS);		
+			
 			if (affectedRows == 0)
 			{
-				throw new JSONException("Nothing updated in database!");
+				throw new Exception("Nothing updated in database!");
 			}
 			
-			int newUserId = 0;
+			// get last user id
+			long newDeviceId = 0;
 			ResultSet restultLastInsert = sqlStatement.getGeneratedKeys();
 			if (restultLastInsert.next())
 			{
-				newUserId = restultLastInsert.getInt(1);
-			}
-			
-			// update user id in device
-			affectedRows = sqlStatement.executeUpdate("update devices set device_user_id = '" + newUserId + "', "						 
-						 + " where device_id = '" + deviceId + "';");
-			if (affectedRows == 0)
-			{
-				throw new JSONException("Nothing updated in database!");
-			}
+				newDeviceId = restultLastInsert.getLong(1);
+			}			
 			sqlConnection.commit();
 			
-			String userToken = encripter.encrypt(String.valueOf(newUserId));
+			AdvancedEncryptionStandard encripter = new AdvancedEncryptionStandard(mEncriptionCode, "AES");
+			final String newUUID = encripter.encrypt(String.valueOf(newDeviceId));
 			
 			JSONObject jsonResponse = new JSONObject();
-			jsonResponse.put("user_token", userToken);
+			jsonResponse.put("device_token", newUUID);
 			strResponseBody = jsonResponse.toString();
 			outputResponse(t, intResponseCode, strResponseBody);
 		}

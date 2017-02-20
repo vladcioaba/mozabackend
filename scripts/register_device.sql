@@ -1,7 +1,6 @@
 CREATE TABLE `devices` (
   `device_id` bigint(20) NOT NULL AUTO_INCREMENT,
   `device_user_id` int(11) DEFAULT '0',
-  `device_token` varchar(45) NOT NULL,
   `device_model` varchar(45) NOT NULL,
   `device_os_version` varchar(45) NOT NULL,
   `device_platform` varchar(45) NOT NULL,

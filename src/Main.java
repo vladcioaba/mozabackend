@@ -2,8 +2,11 @@
 import org.apache.commons.dbcp2.BasicDataSource;
 
 import com.mozaicgames.backend.CBackendServer;
+import com.mozaicgames.backend.CBackendSessionManager;
+import com.mozaicgames.backend.CHandlerRegisterDevice;
 import com.mozaicgames.backend.CHandlerRegisterUserAnonymous;
 import com.mozaicgames.backend.CHandlerRoot;
+import com.mozaicgames.backend.CHandlerUpdateSession;
 
 public class Main 
 {
@@ -41,11 +44,13 @@ public class Main
             }
         }
         
-        BasicDataSource ds = null;
-        
+        final String encriptionCode = "mozadev123";
+    	BasicDataSource ds = null;
+        CBackendSessionManager sessionManager= null;
         try 
         {
         	ds = new BasicDataSource();
+        	sessionManager = new CBackendSessionManager(ds, encriptionCode);
         }
         catch (Exception e)
         {
@@ -59,12 +64,13 @@ public class Main
         ds.setPassword("Mozaic123!");
         
         final String minClientVersionAllowed = "1.0.0";
-        final String encriptionCode = "mozadev123";
-    	CBackendServer backendServer = new CBackendServer();
+        CBackendServer backendServer = new CBackendServer();
 		try 
         {
 			backendServer.registerHandler("", new CHandlerRoot(ds));
+			backendServer.registerHandler("register_device", new CHandlerRegisterDevice(ds, encriptionCode, minClientVersionAllowed));
 			backendServer.registerHandler("register_user_anonymous", new CHandlerRegisterUserAnonymous(ds, encriptionCode, minClientVersionAllowed));
+			backendServer.registerHandler("update_session", new CHandlerUpdateSession(ds, encriptionCode, minClientVersionAllowed, sessionManager));
         }
 		catch (Exception e)
 		{

@@ -1,10 +1,6 @@
 package com.mozaicgames.backend;
 
 import java.io.IOException;
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
 
 import javax.sql.DataSource;
 
@@ -17,16 +13,23 @@ import com.sun.net.httpserver.HttpExchange;
 
 public class CHandlerUpdateSession extends CBackendRequestHandler 
 {
-
-	private String mEncriptionCode			= null; 
+	private final String 											mEncriptionCode; 
+	private final CBackendSessionManager							mSessionManager;		
 	
-	private String mKeyClientDeviceToken	= "client_device_token";
-	private String mKeyClientVersion		= "client_version";
+	private final String mKeyClientSessionKey   = "session_key";
+	private final String mKeyClientDeviceToken	= "client_device_token";
+	private final String mKeyClientUserToken	= "client_user_token";
+	private final String mKeyClientVersion		= "client_version";
 
-	public CHandlerUpdateSession(DataSource sqlDataSource, String encriptionConde) throws Exception
+	public CHandlerUpdateSession(DataSource sqlDataSource, String encriptionConde, String minClientVersionAllowed, CBackendSessionManager sessionManager) throws Exception
 	{
-		super(sqlDataSource, "");
+		super(sqlDataSource, minClientVersionAllowed);
 		mEncriptionCode = encriptionConde;
+		mSessionManager = sessionManager;
+		if (mSessionManager == null)
+		{
+			throw new Exception("sessionManager is null!");
+		}
 	}
 
 	@Override
@@ -35,18 +38,29 @@ public class CHandlerUpdateSession extends CBackendRequestHandler
 		EBackendResponsStatusCode intResponseCode = EBackendResponsStatusCode.STATUS_OK;
 		String strResponseBody = "";
 		String strRequestBody = Utils.getStringFromStream(t.getRequestBody());
-				
-		JSONObject jsonRequestBody = null;
+		
+		String clientVersion = null;
+		String sessionKey = null;
+		String deviceToken = null;
+		String userToken = null;
 		try 
 		{
-			jsonRequestBody = new JSONObject(strRequestBody);
+			JSONObject jsonRequestBody = new JSONObject(strRequestBody);
 			
 			if (jsonRequestBody.has(mKeyClientDeviceToken) == false ||
 				jsonRequestBody.has(mKeyClientVersion) == false)
 			{
 				throw new JSONException("Missing variables");
 			}
-		}
+		
+			clientVersion = jsonRequestBody.getString(mKeyClientVersion);
+			deviceToken = jsonRequestBody.getString(mKeyClientDeviceToken);
+			
+			if (jsonRequestBody.has(mKeyClientSessionKey))
+			{
+				sessionKey= jsonRequestBody.getString(mKeyClientSessionKey);
+			}
+		}		
 		catch (JSONException e)
 		{
 			// bad input
@@ -57,69 +71,64 @@ public class CHandlerUpdateSession extends CBackendRequestHandler
 			return;
 		}
 		
-		Connection sqlConnection = null;
-		Statement sqlStatement = null;
-		
-		try 
+		if (Utils.compareStringIntegerValue(clientVersion, getMinClientVersionAllowed()) == -1)
 		{
-			sqlConnection = getDataSource().getConnection();
-		}
-		catch (SQLException e)
-		{
-			// could not get a connection
-			// return database connection error - status retry
-			intResponseCode = EBackendResponsStatusCode.INTERNAL_ERROR;
-			strResponseBody = e.getMessage();
+			// client version not allowed
+			intResponseCode = EBackendResponsStatusCode.CLIENT_OUT_OF_DATE;
+			strResponseBody = "Client out of date!";
 			outputResponse(t, intResponseCode, strResponseBody);
 			return;
-		}		
+		}
 		
-		try 
+		CBackendSession activeSession = null;
+		if (sessionKey != null && mSessionManager.isSessionValid(sessionKey))
 		{
-			sqlStatement = sqlConnection.createStatement(ResultSet.TYPE_FORWARD_ONLY , ResultSet.CONCUR_UPDATABLE);
-			
-			// get last user id
-			long device_id = 0;
-			ResultSet restultLastInsert = sqlStatement.executeQuery("select device_id from devices order by device_id desc limit 1");
-			while (restultLastInsert.next())
-			{
-				device_id = restultLastInsert.getLong(1);
-			}
-			
+			activeSession = mSessionManager.getActiveSession(sessionKey);
+		}
+		else
+		{
 			AdvancedEncryptionStandard encripter = new AdvancedEncryptionStandard(mEncriptionCode, "AES");
-			String newUUID = encripter.encrypt(String.valueOf(device_id));
-			String remoteAddress = t.getRemoteAddress().getAddress().getHostAddress();
-			
-			sqlStatement.executeUpdate("insert into  devices ( device_token, device_model, device_os_version, device_platform, device_app_version, device_ip ) values "
-							 + "('" + newUUID + "' ,"
-							 + " '" + jsonRequestBody.getString(mKeyClientVersion) + "' ,"
-							 + " '" + remoteAddress + "');");		
-			
-			JSONObject jsonResponse = new JSONObject();
-			jsonResponse.put("device_token", newUUID);
-			strResponseBody = jsonResponse.toString();
-			outputResponse(t, intResponseCode, strResponseBody);
-		}
-		catch (Exception e)
-		{
-			// error processing statement
-			// return statement error - status error
-			intResponseCode = EBackendResponsStatusCode.INTERNAL_ERROR;
-			strResponseBody = e.getMessage();
-			outputResponse(t, intResponseCode, strResponseBody);
-		}
-		finally
-		{
-			try {
-				sqlStatement.close();
-			} catch (SQLException e) {
-				e.printStackTrace();
+			// decrypt device id from token
+			long deviceId = 0;
+			int userId = 0;
+			try 
+			{
+				deviceId= Long.parseLong(encripter.decrypt(deviceToken));
+				userId = Integer.parseInt(encripter.decrypt(userToken));
+			} 
+			catch (Exception e) 
+			{
+				// error processing statement
+				// return statement error - status error
+				intResponseCode = EBackendResponsStatusCode.INTERNAL_ERROR;
+				strResponseBody = "Unable to validate tokens!";
+				outputResponse(t, intResponseCode, strResponseBody);	
 			}
-			try {
-				sqlConnection.close();
-			} catch (SQLException e) {
-				e.printStackTrace();
+			
+			final String remoteAddress = t.getRemoteAddress().getAddress().getHostAddress();
+			activeSession = mSessionManager.createSession(deviceId, userId, remoteAddress);
+		}
+		
+		if (activeSession != null)
+		{
+			try 
+			{
+				JSONObject jsonResponse = new JSONObject();
+				jsonResponse.put("active_session", activeSession.getKey());
+				strResponseBody = jsonResponse.toString();
+				outputResponse(t, intResponseCode, strResponseBody);
+				return;
+			} 
+			catch (JSONException e) 
+			{
+				System.err.println(e.getMessage());
 			}
 		}
+		
+		// error processing statement
+		// return statement error - status error
+		intResponseCode = EBackendResponsStatusCode.INTERNAL_ERROR;
+		strResponseBody = "Unable to retrive active session!";
+		outputResponse(t, intResponseCode, strResponseBody);			
 	}
 }
