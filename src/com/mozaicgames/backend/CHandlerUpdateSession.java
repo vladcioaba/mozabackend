@@ -1,6 +1,10 @@
 package com.mozaicgames.backend;
 
 import java.io.IOException;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 
 import javax.sql.DataSource;
 
@@ -8,6 +12,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import com.mozaicgames.utils.AdvancedEncryptionStandard;
+import com.mozaicgames.utils.CBackendQuerryValidateDevice;
 import com.mozaicgames.utils.Utils;
 import com.sun.net.httpserver.HttpExchange;
 
@@ -82,6 +87,31 @@ public class CHandlerUpdateSession extends CBackendRequestHandler
 			return;
 		}
 		
+		AdvancedEncryptionStandard encripter = new AdvancedEncryptionStandard(mEncriptionCode, "AES");
+		// decrypt device id from token
+		long deviceId = 0;
+		int userId = 0;
+		try 
+		{
+			deviceId= Long.parseLong(encripter.decrypt(deviceToken));
+			userId = Integer.parseInt(encripter.decrypt(userToken));
+		} 
+		catch (Exception e) 
+		{
+			// error processing statement
+			// return statement error - status error
+			intResponseCode = EBackendResponsStatusCode.INTERNAL_ERROR;
+			strResponseBody = "Unable to validate tokens!";
+			outputResponse(t, intResponseCode, strResponseBody);
+			return;
+		}
+		
+		CBackendQuerryValidateDevice validatorDevice = new CBackendQuerryValidateDevice(getDataSource(), t);
+		if (false == validatorDevice.validateDeviceFromToken(deviceId))
+		{
+			return;
+		}
+	
 		CBackendSession activeSession = null;
 		if (sessionKey != null && mSessionManager.isSessionValid(sessionKey))
 		{
@@ -89,24 +119,6 @@ public class CHandlerUpdateSession extends CBackendRequestHandler
 		}
 		else
 		{
-			AdvancedEncryptionStandard encripter = new AdvancedEncryptionStandard(mEncriptionCode, "AES");
-			// decrypt device id from token
-			long deviceId = 0;
-			int userId = 0;
-			try 
-			{
-				deviceId= Long.parseLong(encripter.decrypt(deviceToken));
-				userId = Integer.parseInt(encripter.decrypt(userToken));
-			} 
-			catch (Exception e) 
-			{
-				// error processing statement
-				// return statement error - status error
-				intResponseCode = EBackendResponsStatusCode.INTERNAL_ERROR;
-				strResponseBody = "Unable to validate tokens!";
-				outputResponse(t, intResponseCode, strResponseBody);	
-			}
-			
 			final String remoteAddress = t.getRemoteAddress().getAddress().getHostAddress();
 			activeSession = mSessionManager.createSession(deviceId, userId, remoteAddress);
 		}

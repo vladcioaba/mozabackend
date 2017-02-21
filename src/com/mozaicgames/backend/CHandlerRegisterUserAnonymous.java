@@ -14,6 +14,7 @@ import org.json.JSONObject;
 
 import com.mozaicgames.backend.CBackendRequestHandler;
 import com.mozaicgames.utils.AdvancedEncryptionStandard;
+import com.mozaicgames.utils.CBackendQuerryValidateDevice;
 import com.mozaicgames.utils.Utils;
 import com.sun.net.httpserver.HttpExchange;
 
@@ -65,6 +66,29 @@ public class CHandlerRegisterUserAnonymous extends CBackendRequestHandler
 			return;
 		}
 		
+		AdvancedEncryptionStandard encripter = new AdvancedEncryptionStandard(mEncriptionCode, "AES");
+		long deviceId = 0;
+		try 
+		{
+			// decrypt device id from token
+			deviceId = Long.parseLong(encripter.decrypt(deviceToken));
+		}
+		catch (Exception ex)
+		{
+			// error processing statement
+			// return statement error - status error
+			intResponseCode = EBackendResponsStatusCode.INTERNAL_ERROR;
+			strResponseBody = ex.getMessage();
+			outputResponse(t, intResponseCode, strResponseBody);
+			return;
+		}
+		
+		CBackendQuerryValidateDevice validatorDevice = new CBackendQuerryValidateDevice(getDataSource(), t);
+		if (false == validatorDevice.validateDeviceFromToken(deviceId))
+		{
+			return;
+		}
+		
 		Connection sqlConnection = null;
 		PreparedStatement preparedStatementInsert = null;
 		PreparedStatement preparedStatementUpdate = null;
@@ -74,10 +98,6 @@ public class CHandlerRegisterUserAnonymous extends CBackendRequestHandler
 			sqlConnection = getDataSource().getConnection();
 			sqlConnection.setAutoCommit(false);
 		
-			AdvancedEncryptionStandard encripter = new AdvancedEncryptionStandard(mEncriptionCode, "AES");
-			// decrypt device id from token
-			final long deviceId = Long.parseLong(encripter.decrypt(deviceToken));
-			
 			String strQueryInsert = "insert into users ( user_creation_date ) values ( ? );";
 			preparedStatementInsert = sqlConnection.prepareStatement(strQueryInsert, PreparedStatement.RETURN_GENERATED_KEYS);
 			preparedStatementInsert.setTimestamp(1, new Timestamp(System.currentTimeMillis()));
@@ -96,7 +116,6 @@ public class CHandlerRegisterUserAnonymous extends CBackendRequestHandler
 			restultLastInsert.close();
 			preparedStatementInsert.close();
 			preparedStatementInsert = null;
-			
 			
 			// update user id in device
 			String strQueryUpdate = "update devices set device_user_id=? where device_id=?;";
@@ -129,7 +148,7 @@ public class CHandlerRegisterUserAnonymous extends CBackendRequestHandler
 			outputResponse(t, intResponseCode, strResponseBody);
 		}
 		finally
-		{
+		{			
 			if (preparedStatementInsert != null)
 			{
 				try  
@@ -141,6 +160,7 @@ public class CHandlerRegisterUserAnonymous extends CBackendRequestHandler
 					e.printStackTrace(); 
 				}
 			}
+			
 			if (preparedStatementUpdate != null)
 			{
 				try  
