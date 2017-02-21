@@ -2,9 +2,10 @@ package com.mozaicgames.backend;
 
 import java.io.IOException;
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.Timestamp;
 
 import javax.sql.DataSource;
 
@@ -71,24 +72,24 @@ public class CHandlerRegisterDevice extends CBackendRequestHandler
 		}
 		
 		Connection sqlConnection = null;
-		Statement sqlStatement = null;
+		PreparedStatement preparedStatementInsert = null;
 		
 		try 
 		{
 			sqlConnection = getDataSource().getConnection();
 			sqlConnection.setAutoCommit(false);
-			sqlStatement = sqlConnection.createStatement(ResultSet.TYPE_FORWARD_ONLY , ResultSet.CONCUR_UPDATABLE);
-			
 			final String remoteAddress = t.getRemoteAddress().getAddress().getHostAddress();
 			
-			// create new device
-			int affectedRows = sqlStatement.executeUpdate("insert into devices ( device_model, device_os_version, device_platform, device_app_version, device_ip ) values "
-							 + "('" + deviceModel + "' ,"
-							 + " '" + deviceOsVerrsion + "' ,"
-							 + " '" + devicePlatform + "' ,"
-							 + " '" + clientVersion + "' ,"
-							 + " '" + remoteAddress + "');", Statement.RETURN_GENERATED_KEYS);		
+			String strQueryInsert = "insert into devices ( device_model, device_os_version, device_platform, device_app_version, device_ip, device_creation_time ) values (?,?,?,?,?, ?);";
+			preparedStatementInsert = sqlConnection.prepareStatement(strQueryInsert, PreparedStatement.RETURN_GENERATED_KEYS);
+			preparedStatementInsert.setString(1, deviceModel);
+			preparedStatementInsert.setString(2, deviceOsVerrsion);
+			preparedStatementInsert.setString(3, devicePlatform);
+			preparedStatementInsert.setString(4, clientVersion);
+			preparedStatementInsert.setString(5, remoteAddress);
+			preparedStatementInsert.setTimestamp(6, new Timestamp(System.currentTimeMillis()));
 			
+			int affectedRows = preparedStatementInsert.executeUpdate();
 			if (affectedRows == 0)
 			{
 				throw new Exception("Nothing updated in database!");
@@ -96,12 +97,13 @@ public class CHandlerRegisterDevice extends CBackendRequestHandler
 			
 			// get last user id
 			long newDeviceId = 0;
-			ResultSet restultLastInsert = sqlStatement.getGeneratedKeys();
+			ResultSet restultLastInsert = preparedStatementInsert.getGeneratedKeys();
 			if (restultLastInsert.next())
 			{
 				newDeviceId = restultLastInsert.getLong(1);
 			}			
-			sqlConnection.commit();
+			preparedStatementInsert.close();
+			preparedStatementInsert = null;
 			
 			AdvancedEncryptionStandard encripter = new AdvancedEncryptionStandard(mEncriptionCode, "AES");
 			final String newUUID = encripter.encrypt(String.valueOf(newDeviceId));
@@ -110,6 +112,8 @@ public class CHandlerRegisterDevice extends CBackendRequestHandler
 			jsonResponse.put("device_token", newUUID);
 			strResponseBody = jsonResponse.toString();
 			outputResponse(t, intResponseCode, strResponseBody);
+			
+			sqlConnection.commit();			
 		}
 		catch (Exception e)
 		{
@@ -121,19 +125,22 @@ public class CHandlerRegisterDevice extends CBackendRequestHandler
 		}
 		finally
 		{
-			try 
+			if (preparedStatementInsert != null)
 			{
-				sqlStatement.close();
-			} 
-			catch (SQLException e) 
-			{
-				e.printStackTrace();
+				try 
+				{
+					preparedStatementInsert.close();
+				} 
+				catch (SQLException e) 
+				{
+					e.printStackTrace();
+				}
 			}
 			try 
 			{
 				sqlConnection.close();
 			} 
-			catch (SQLException e) 
+			catch (Exception e) 
 			{
 				e.printStackTrace();
 			}

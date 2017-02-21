@@ -1,9 +1,11 @@
 package com.mozaicgames.backend;
 
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Timestamp;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -12,7 +14,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 import javax.sql.DataSource;
-import javax.sql.RowSet;
 
 import com.mozaicgames.utils.AdvancedEncryptionStandard;
 
@@ -33,101 +34,116 @@ public class CBackendSessionManager
 		}
 	}
 	
-	
-	public boolean isSessionValid(String sessionKey)
+    public static final int TIME_TO_LIVE = 600000;
+    
+	public synchronized void cleanInvalidSessions() 
 	{
-		CBackendSession session = getActiveSession(sessionKey);
+		long now = System.currentTimeMillis();
+		for (CBackendSession session : mActiveSessions.values())
+		{
+			if ((now - session.getCreationTime()) > TIME_TO_LIVE || now < session.getExpireTime())
+			{
+				mActiveSessions.remove(session.getKey());
+			}
+		}
+	}
+	
+	public synchronized boolean isSessionValid(String sessionKey)
+	{
+		return isSessionValid(getActiveSession(sessionKey));
+	}
+	
+	private synchronized boolean isSessionValid(CBackendSession session)
+	{
+		long now = System.currentTimeMillis();
 		if (session != null)
 		{
-			return true;
+			return now < session.getExpireTime();
 		}
 		return false;
 	}
 	
-	public CBackendSession getActiveSession(String sessionKey)
+	public synchronized CBackendSession getActiveSession(String sessionKey)
 	{
-		return mActiveSessions.get(sessionKey);
+		CBackendSession session = mActiveSessions.get(sessionKey);
+		return session;
 	}
 	
-	public CBackendSession createSession(long deviceId, int userId, String remoteAddress)
+	public synchronized CBackendSession createSession(long deviceId, int userId, String remoteAddress)
 	{
 		Connection sqlConnection = null;
-		Statement sqlStatement = null;
+		PreparedStatement preparedStatementSelect = null;
+		PreparedStatement preparedStatementInsert = null;
 		try 
 		{
 			sqlConnection = mSqlDataSource.getConnection();
 			sqlConnection.setAutoCommit(false);
 			
-			sqlStatement = sqlConnection.createStatement(ResultSet.TYPE_FORWARD_ONLY , ResultSet.CONCUR_UPDATABLE);
-			
 			// find the session in the database first
-			ResultSet response = sqlStatement.executeQuery("select ( session_id, session_creation_date, session_espire_date ) "
-							   + "from sessions where deviceId = '" + deviceId + "' and userId = ' " + userId + " '");
+			String strQuerySelect = "select session_id, session_creation_date, session_expire_date from sessions where device_id=? and user_id=? order by session_id desc limit 1;";
+			preparedStatementSelect = sqlConnection.prepareStatement(strQuerySelect, Statement.RETURN_GENERATED_KEYS);
+			preparedStatementSelect.setLong(1, deviceId);
+			preparedStatementSelect.setInt(2, userId);
 			
-			final Date currentDate = new Date();
-			boolean createNewSession = false;
+			ResultSet response = preparedStatementSelect.executeQuery();			
 			long sessionId = 0;
-			Date dateCreated = null;
-			Date dateExpires = null;
+			long timestampNow = System.currentTimeMillis();
+			long timestampCreated = 0;
+			long timestampExpired = 0;
 			if (response != null && response.next())
 			{
 				sessionId = response.getLong(1);
-				dateCreated = response.getDate(2);
-				dateExpires = response.getDate(3);
+				timestampCreated = response.getTimestamp(2).getTime();
+				timestampExpired = response.getTimestamp(3).getTime();
+			
+				preparedStatementSelect.close();
+				preparedStatementSelect = null;
 				
-				if (currentDate.compareTo(dateExpires) == 1)
-				{
-					// this session expired
-					createNewSession = true;
-				}
-				else
+				if (timestampNow < timestampExpired)
 				{
 					AdvancedEncryptionStandard encripter = new AdvancedEncryptionStandard(mEncriptionCode, "AES");
 					final String newSessionKey = encripter.encrypt(String.valueOf(sessionId));
-					CBackendSession newSession = new CBackendSession(sessionId, userId, deviceId, newSessionKey, Calendar.getInstance().getTimeInMillis());
+					CBackendSession newSession = new CBackendSession(sessionId, userId, deviceId, newSessionKey, timestampExpired, Calendar.getInstance().getTimeInMillis());
 					mActiveSessions.put(newSessionKey, newSession);
 					return newSession;
-				}
-			}
-			else
-			{
-				// there is no session stored in the backend
-				// create new session data
-				dateCreated = currentDate;
-				
-				Calendar calendar = Calendar.getInstance();
-				calendar.setTime(currentDate);
-				calendar.add(Calendar.DATE, 14);
-		        dateExpires = calendar.getTime();
-		        createNewSession = true;
+				}				
 			}			
 			
-			// if there is no session in the database or the session there is expired
-			// create new session
-			if (createNewSession)
+			// there is no session stored in the backend or the session was expired
+			// create new session data
+			final long timeToExpire = 300000;
+			timestampCreated = timestampNow;
+			timestampExpired = timestampCreated + timeToExpire;
+			
+			// create session key
+			String strQueryInsert = "insert into sessions ( user_id, device_id, session_creation_date, session_expire_date, session_ip ) values (?,?,?,?,?);";
+			preparedStatementInsert = sqlConnection.prepareStatement(strQueryInsert, PreparedStatement.RETURN_GENERATED_KEYS);
+			preparedStatementInsert.setInt(1, userId);
+			preparedStatementInsert.setLong(2, deviceId);
+			preparedStatementInsert.setTimestamp(3, new Timestamp(timestampCreated));
+			preparedStatementInsert.setTimestamp(4, new Timestamp(timestampExpired));
+			preparedStatementInsert.setString(5, remoteAddress);
+			
+			int affectedRows = preparedStatementInsert.executeUpdate();
+			ResultSet restultLastInsert = preparedStatementInsert.getGeneratedKeys();
+			if (affectedRows >= 1 && restultLastInsert.next())
 			{
-				final DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
-				// create session key
-				sqlStatement.executeUpdate("insert into sessions ( user_id, device_id, session_creation_date, session_expire_date, session_ip ) values "
-							 + "( '" + userId + "',"
-					 		 + "  '" + deviceId + "',"
-					 		 + "  '" + dateFormat.format(dateCreated) + "',"
-					 	     + "  '" + dateFormat.format(dateExpires) + "',"
-		 		 		     + "  '" + remoteAddress + "' );", Statement.RETURN_GENERATED_KEYS);				
-
-				ResultSet restultLastInsert = sqlStatement.getGeneratedKeys();
-				if (restultLastInsert.next())
-				{
-					sessionId = restultLastInsert.getLong(1);
-					sqlConnection.commit();
-				}
-				
-				AdvancedEncryptionStandard encripter = new AdvancedEncryptionStandard(mEncriptionCode, "AES");
-				final String newSessionKey = encripter.encrypt(String.valueOf(sessionId));
-				CBackendSession newSession = new CBackendSession(sessionId, userId, deviceId, newSessionKey, Calendar.getInstance().getTimeInMillis());
-				mActiveSessions.put(newSessionKey, newSession);
-				return newSession;
+				sessionId = restultLastInsert.getLong(1);
 			}
+			else					
+			{
+				return null;
+			}
+			preparedStatementInsert.close();
+			preparedStatementInsert = null;
+			
+			AdvancedEncryptionStandard encripter = new AdvancedEncryptionStandard(mEncriptionCode, "AES");
+			final String newSessionKey = encripter.encrypt(String.valueOf(sessionId));
+			CBackendSession newSession = new CBackendSession(sessionId, userId, deviceId, newSessionKey, timestampExpired, timestampCreated);
+			mActiveSessions.put(newSessionKey, newSession);
+
+			sqlConnection.commit();
+			return newSession;
 		}
 		catch (Exception e) 
 		{
@@ -137,14 +153,30 @@ public class CBackendSessionManager
 		}
 		finally
 		{
-			try 
+			if (preparedStatementSelect != null)
 			{
-				sqlStatement.close();
-			} 
-			catch (SQLException e) 
-			{
-				e.printStackTrace();
+				try  
+				{ 
+					preparedStatementSelect.close(); 
+				}  
+				catch (SQLException e)  
+				{ 
+					e.printStackTrace(); 
+				}
 			}
+			
+			if (preparedStatementInsert != null)
+			{
+				try  
+				{ 
+					preparedStatementInsert.close(); 
+				}  
+				catch (SQLException e)  
+				{ 
+					e.printStackTrace(); 
+				}
+			}
+			
 			try 
 			{
 				sqlConnection.close();

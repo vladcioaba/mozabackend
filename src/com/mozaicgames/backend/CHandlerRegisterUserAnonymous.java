@@ -2,9 +2,10 @@ package com.mozaicgames.backend;
 
 import java.io.IOException;
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.Timestamp;
 
 import javax.sql.DataSource;
 
@@ -65,60 +66,59 @@ public class CHandlerRegisterUserAnonymous extends CBackendRequestHandler
 		}
 		
 		Connection sqlConnection = null;
-		Statement sqlStatement = null;
+		PreparedStatement preparedStatementInsert = null;
+		PreparedStatement preparedStatementUpdate = null;
 		
 		try 
 		{
 			sqlConnection = getDataSource().getConnection();
 			sqlConnection.setAutoCommit(false);
-		}
-		catch (SQLException e)
-		{
-			// could not get a connection
-			// return database connection error - status retry
-			intResponseCode = EBackendResponsStatusCode.INTERNAL_ERROR;
-			strResponseBody = e.getMessage();
-			outputResponse(t, intResponseCode, strResponseBody);
-			return;
-		}		
 		
-		try 
-		{
 			AdvancedEncryptionStandard encripter = new AdvancedEncryptionStandard(mEncriptionCode, "AES");
 			// decrypt device id from token
 			final long deviceId = Long.parseLong(encripter.decrypt(deviceToken));
 			
-			sqlStatement = sqlConnection.createStatement(ResultSet.TYPE_FORWARD_ONLY , ResultSet.CONCUR_UPDATABLE);
-					
-			// create new user
-			int affectedRows = sqlStatement.executeUpdate("insert into users values ();", Statement.RETURN_GENERATED_KEYS);			
+			String strQueryInsert = "insert into users ( user_creation_date ) values ( ? );";
+			preparedStatementInsert = sqlConnection.prepareStatement(strQueryInsert, PreparedStatement.RETURN_GENERATED_KEYS);
+			preparedStatementInsert.setTimestamp(1, new Timestamp(System.currentTimeMillis()));
+			int affectedRows = preparedStatementInsert.executeUpdate();
 			if (affectedRows == 0)
 			{
 				throw new JSONException("Nothing updated in database!");
 			}
 			
 			int newUserId = 0;
-			ResultSet restultLastInsert = sqlStatement.getGeneratedKeys();
+			ResultSet restultLastInsert = preparedStatementInsert.getGeneratedKeys();
 			if (restultLastInsert.next())
 			{
 				newUserId = restultLastInsert.getInt(1);
 			}
+			restultLastInsert.close();
+			preparedStatementInsert.close();
+			preparedStatementInsert = null;
+			
 			
 			// update user id in device
-			affectedRows = sqlStatement.executeUpdate("update devices set device_user_id = '" + newUserId + "', "						 
-						 + " where device_id = '" + deviceId + "';");
+			String strQueryUpdate = "update devices set device_user_id=? where device_id=?;";
+			preparedStatementUpdate =  sqlConnection.prepareStatement(strQueryUpdate);
+			preparedStatementUpdate.setInt(1, newUserId);
+			preparedStatementUpdate.setLong(2, deviceId);
+			
+			affectedRows = preparedStatementUpdate.executeUpdate();
 			if (affectedRows == 0)
 			{
 				throw new JSONException("Nothing updated in database!");
 			}
-			sqlConnection.commit();
+			preparedStatementUpdate.close();
+			preparedStatementUpdate = null;
 			
-			String userToken = encripter.encrypt(String.valueOf(newUserId));
-			
+			String userToken = encripter.encrypt(String.valueOf(newUserId));			
 			JSONObject jsonResponse = new JSONObject();
 			jsonResponse.put("user_token", userToken);
 			strResponseBody = jsonResponse.toString();
 			outputResponse(t, intResponseCode, strResponseBody);
+
+			sqlConnection.commit();
 		}
 		catch (Exception e)
 		{
@@ -130,19 +130,34 @@ public class CHandlerRegisterUserAnonymous extends CBackendRequestHandler
 		}
 		finally
 		{
-			try 
+			if (preparedStatementInsert != null)
 			{
-				sqlStatement.close();
-			} 
-			catch (SQLException e) 
-			{
-				e.printStackTrace();
+				try  
+				{ 
+					preparedStatementInsert.close(); 
+				}  
+				catch (SQLException e)  
+				{ 
+					e.printStackTrace(); 
+				}
 			}
+			if (preparedStatementUpdate != null)
+			{
+				try  
+				{ 
+					preparedStatementUpdate.close(); 
+				}  
+				catch (SQLException e)  
+				{ 
+					e.printStackTrace(); 
+				}
+			}
+			
 			try 
 			{
 				sqlConnection.close();
 			} 
-			catch (SQLException e) 
+			catch (Exception e) 
 			{
 				e.printStackTrace();
 			}

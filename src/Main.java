@@ -2,6 +2,7 @@
 import org.apache.commons.dbcp2.BasicDataSource;
 
 import com.mozaicgames.backend.CBackendServer;
+import com.mozaicgames.backend.CBackendSessionCleanerScheduler;
 import com.mozaicgames.backend.CBackendSessionManager;
 import com.mozaicgames.backend.CHandlerRegisterDevice;
 import com.mozaicgames.backend.CHandlerRegisterUserAnonymous;
@@ -10,6 +11,9 @@ import com.mozaicgames.backend.CHandlerUpdateSession;
 
 public class Main 
 {
+	
+	private static CBackendSessionManager 							mSessionManager = null;
+	private static CBackendSessionCleanerScheduler					mSessionManagerCleaner = null;
 	
 	public static void main(String[] args) 
 	{
@@ -46,11 +50,12 @@ public class Main
         
         final String encriptionCode = "mozadev123";
     	BasicDataSource ds = null;
-        CBackendSessionManager sessionManager= null;
         try 
         {
         	ds = new BasicDataSource();
-        	sessionManager = new CBackendSessionManager(ds, encriptionCode);
+        	mSessionManager = new CBackendSessionManager(ds, encriptionCode);
+        	mSessionManagerCleaner = new CBackendSessionCleanerScheduler(mSessionManager);
+        	mSessionManagerCleaner.startService();
         }
         catch (Exception e)
         {
@@ -70,7 +75,7 @@ public class Main
 			backendServer.registerHandler("", new CHandlerRoot(ds));
 			backendServer.registerHandler("register_device", new CHandlerRegisterDevice(ds, encriptionCode, minClientVersionAllowed));
 			backendServer.registerHandler("register_user_anonymous", new CHandlerRegisterUserAnonymous(ds, encriptionCode, minClientVersionAllowed));
-			backendServer.registerHandler("update_session", new CHandlerUpdateSession(ds, encriptionCode, minClientVersionAllowed, sessionManager));
+			backendServer.registerHandler("update_session", new CHandlerUpdateSession(ds, encriptionCode, minClientVersionAllowed, mSessionManager));
         }
 		catch (Exception e)
 		{

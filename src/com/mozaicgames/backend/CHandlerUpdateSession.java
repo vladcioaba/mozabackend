@@ -48,6 +48,7 @@ public class CHandlerUpdateSession extends CBackendRequestHandler
 			JSONObject jsonRequestBody = new JSONObject(strRequestBody);
 			
 			if (jsonRequestBody.has(mKeyClientDeviceToken) == false ||
+				jsonRequestBody.has(mKeyClientUserToken) == false ||
 				jsonRequestBody.has(mKeyClientVersion) == false)
 			{
 				throw new JSONException("Missing variables");
@@ -55,6 +56,7 @@ public class CHandlerUpdateSession extends CBackendRequestHandler
 		
 			clientVersion = jsonRequestBody.getString(mKeyClientVersion);
 			deviceToken = jsonRequestBody.getString(mKeyClientDeviceToken);
+			userToken = jsonRequestBody.getString(mKeyClientUserToken);
 			
 			if (jsonRequestBody.has(mKeyClientSessionKey))
 			{
@@ -114,7 +116,7 @@ public class CHandlerUpdateSession extends CBackendRequestHandler
 			try 
 			{
 				JSONObject jsonResponse = new JSONObject();
-				jsonResponse.put("active_session", activeSession.getKey());
+				jsonResponse.put("session_key", activeSession.getKey());
 				strResponseBody = jsonResponse.toString();
 				outputResponse(t, intResponseCode, strResponseBody);
 				return;
