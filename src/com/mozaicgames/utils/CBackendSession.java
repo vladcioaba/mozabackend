@@ -1,4 +1,4 @@
-package com.mozaicgames.backend;
+package com.mozaicgames.utils;
 
 public class CBackendSession 
 {

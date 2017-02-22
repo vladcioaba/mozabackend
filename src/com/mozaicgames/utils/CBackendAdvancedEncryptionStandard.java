@@ -11,12 +11,12 @@ import javax.crypto.spec.SecretKeySpec;
 import org.apache.commons.codec.binary.Base64;
 
 
-public class AdvancedEncryptionStandard {
+public class CBackendAdvancedEncryptionStandard {
 
 	private String encryptionKey;
 	private String encryptionAlgorithm;
     
-    public AdvancedEncryptionStandard(String encryptionKey, String encryptionAlgorithm)
+    public CBackendAdvancedEncryptionStandard(String encryptionKey, String encryptionAlgorithm)
     {
         this.encryptionKey = encryptionKey;
         this.encryptionAlgorithm = encryptionAlgorithm;

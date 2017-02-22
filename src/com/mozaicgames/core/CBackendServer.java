@@ -1,4 +1,4 @@
-package com.mozaicgames.backend;
+package com.mozaicgames.core;
 
 import java.net.InetSocketAddress;
 import java.util.Hashtable;

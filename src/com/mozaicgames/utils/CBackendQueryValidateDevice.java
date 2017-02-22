@@ -7,7 +7,7 @@ import java.sql.SQLException;
 
 import javax.sql.DataSource;
 
-import com.mozaicgames.backend.EBackendResponsStatusCode;
+import com.mozaicgames.core.EBackendResponsStatusCode;
 
 public class CBackendQueryValidateDevice implements IBackendQueryExecuter {
 	

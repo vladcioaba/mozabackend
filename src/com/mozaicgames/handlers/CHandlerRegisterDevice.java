@@ -1,4 +1,4 @@
-package com.mozaicgames.backend;
+package com.mozaicgames.handlers;
 
 import java.io.IOException;
 import java.sql.Connection;
@@ -12,9 +12,10 @@ import javax.sql.DataSource;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import com.mozaicgames.backend.CBackendRequestHandler;
-import com.mozaicgames.utils.AdvancedEncryptionStandard;
-import com.mozaicgames.utils.Utils;
+import com.mozaicgames.core.CBackendRequestHandler;
+import com.mozaicgames.core.EBackendResponsStatusCode;
+import com.mozaicgames.utils.CBackendAdvancedEncryptionStandard;
+import com.mozaicgames.utils.CBackendUtils;
 import com.sun.net.httpserver.HttpExchange;
 
 public class CHandlerRegisterDevice extends CBackendRequestHandler 
@@ -38,7 +39,7 @@ public class CHandlerRegisterDevice extends CBackendRequestHandler
 	{		
 		EBackendResponsStatusCode intResponseCode = EBackendResponsStatusCode.STATUS_OK;
 		String strResponseBody = "";
-		String strRequestBody = Utils.getStringFromStream(t.getRequestBody());
+		String strRequestBody = CBackendUtils.getStringFromStream(t.getRequestBody());
 		
 		String clientVersion = null;
 		String deviceModel = null;
@@ -58,16 +59,16 @@ public class CHandlerRegisterDevice extends CBackendRequestHandler
 			// return database connection error - status retry
 			intResponseCode = EBackendResponsStatusCode.INVALID_DATA;
 			strResponseBody = "Bad input data!";
-			Utils.writeResponseInExchange(t, intResponseCode, strResponseBody);
+			CBackendUtils.writeResponseInExchange(t, intResponseCode, strResponseBody);
 			return;
 		}
 		
-		if (Utils.compareStringIntegerValue(clientVersion, getMinClientVersionAllowed()) == -1)
+		if (CBackendUtils.compareStringIntegerValue(clientVersion, getMinClientVersionAllowed()) == -1)
 		{
 			// client version not allowed
 			intResponseCode = EBackendResponsStatusCode.CLIENT_OUT_OF_DATE;
 			strResponseBody = "Client out of date!";
-			Utils.writeResponseInExchange(t, intResponseCode, strResponseBody);
+			CBackendUtils.writeResponseInExchange(t, intResponseCode, strResponseBody);
 			return;
 		}
 		
@@ -105,13 +106,13 @@ public class CHandlerRegisterDevice extends CBackendRequestHandler
 			preparedStatementInsert.close();
 			preparedStatementInsert = null;
 			
-			AdvancedEncryptionStandard encripter = new AdvancedEncryptionStandard(mEncriptionCode, "AES");
+			CBackendAdvancedEncryptionStandard encripter = new CBackendAdvancedEncryptionStandard(mEncriptionCode, "AES");
 			final String newUUID = encripter.encrypt(String.valueOf(newDeviceId));
 			
 			JSONObject jsonResponse = new JSONObject();
 			jsonResponse.put("device_token", newUUID);
 			strResponseBody = jsonResponse.toString();
-			Utils.writeResponseInExchange(t, intResponseCode, strResponseBody);
+			CBackendUtils.writeResponseInExchange(t, intResponseCode, strResponseBody);
 			
 			sqlConnection.commit();			
 		}
@@ -121,7 +122,7 @@ public class CHandlerRegisterDevice extends CBackendRequestHandler
 			// return statement error - status error
 			intResponseCode = EBackendResponsStatusCode.INTERNAL_ERROR;
 			strResponseBody = e.getMessage();
-			Utils.writeResponseInExchange(t, intResponseCode, strResponseBody);
+			CBackendUtils.writeResponseInExchange(t, intResponseCode, strResponseBody);
 		}
 		finally
 		{

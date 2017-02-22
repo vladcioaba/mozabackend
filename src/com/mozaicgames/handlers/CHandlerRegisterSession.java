@@ -1,4 +1,4 @@
-package com.mozaicgames.backend;
+package com.mozaicgames.handlers;
 
 import java.io.IOException;
 
@@ -7,13 +7,17 @@ import javax.sql.DataSource;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import com.mozaicgames.utils.AdvancedEncryptionStandard;
+import com.mozaicgames.core.CBackendRequestHandler;
+import com.mozaicgames.core.EBackendResponsStatusCode;
+import com.mozaicgames.utils.CBackendAdvancedEncryptionStandard;
 import com.mozaicgames.utils.CBackendQueryValidateDevice;
+import com.mozaicgames.utils.CBackendSession;
+import com.mozaicgames.utils.CBackendSessionManager;
 import com.mozaicgames.utils.CBackendQueryResponse;
-import com.mozaicgames.utils.Utils;
+import com.mozaicgames.utils.CBackendUtils;
 import com.sun.net.httpserver.HttpExchange;
 
-public class CHandlerUpdateSession extends CBackendRequestHandler 
+public class CHandlerRegisterSession extends CBackendRequestHandler 
 {
 	private final String 											mEncriptionCode; 
 	private final CBackendSessionManager							mSessionManager;		
@@ -22,10 +26,10 @@ public class CHandlerUpdateSession extends CBackendRequestHandler
 	private final String mKeyClientUserToken	= "client_user_token";
 	private final String mKeyClientVersion		= "client_version";
 
-	public CHandlerUpdateSession(DataSource sqlDataSource, String encriptionConde, String minClientVersionAllowed, CBackendSessionManager sessionManager) throws Exception
+	public CHandlerRegisterSession(DataSource sqlDataSource, String encriptionCode, String minClientVersionAllowed, CBackendSessionManager sessionManager) throws Exception
 	{
 		super(sqlDataSource, minClientVersionAllowed);
-		mEncriptionCode = encriptionConde;
+		mEncriptionCode = encriptionCode;
 		mSessionManager = sessionManager;
 		if (mSessionManager == null)
 		{
@@ -38,7 +42,7 @@ public class CHandlerUpdateSession extends CBackendRequestHandler
 	{		
 		EBackendResponsStatusCode intResponseCode = EBackendResponsStatusCode.STATUS_OK;
 		String strResponseBody = "";
-		String strRequestBody = Utils.getStringFromStream(t.getRequestBody());
+		String strRequestBody = CBackendUtils.getStringFromStream(t.getRequestBody());
 		
 		String clientVersion = null;
 		String deviceToken = null;
@@ -64,26 +68,26 @@ public class CHandlerUpdateSession extends CBackendRequestHandler
 			// return database connection error - status retry
 			intResponseCode = EBackendResponsStatusCode.INVALID_DATA;
 			strResponseBody = "Bad input data!";
-			Utils.writeResponseInExchange(t, intResponseCode, strResponseBody);
+			CBackendUtils.writeResponseInExchange(t, intResponseCode, strResponseBody);
 			return;
 		}
 		
-		if (Utils.compareStringIntegerValue(clientVersion, getMinClientVersionAllowed()) == -1)
+		if (CBackendUtils.compareStringIntegerValue(clientVersion, getMinClientVersionAllowed()) == -1)
 		{
 			// client version not allowed
 			intResponseCode = EBackendResponsStatusCode.CLIENT_OUT_OF_DATE;
 			strResponseBody = "Client out of date!";
-			Utils.writeResponseInExchange(t, intResponseCode, strResponseBody);
+			CBackendUtils.writeResponseInExchange(t, intResponseCode, strResponseBody);
 			return;
 		}
 		
-		AdvancedEncryptionStandard encripter = new AdvancedEncryptionStandard(mEncriptionCode, "AES");
+		CBackendAdvancedEncryptionStandard encripter = new CBackendAdvancedEncryptionStandard(mEncriptionCode, "AES");
 		// decrypt device id from token
 		long deviceId = 0;
 		int userId = 0;
 		try 
 		{
-			deviceId= Long.parseLong(encripter.decrypt(deviceToken));
+			deviceId = Long.parseLong(encripter.decrypt(deviceToken));
 			userId = Integer.parseInt(encripter.decrypt(userToken));
 		} 
 		catch (Exception e) 
@@ -92,7 +96,7 @@ public class CHandlerUpdateSession extends CBackendRequestHandler
 			// return statement error - status error
 			intResponseCode = EBackendResponsStatusCode.INTERNAL_ERROR;
 			strResponseBody = "Unable to validate tokens!";
-			Utils.writeResponseInExchange(t, intResponseCode, strResponseBody);
+			CBackendUtils.writeResponseInExchange(t, intResponseCode, strResponseBody);
 			return;
 		}
 		
@@ -101,7 +105,7 @@ public class CHandlerUpdateSession extends CBackendRequestHandler
 		
 		if (validatorResponse.getCode() != EBackendResponsStatusCode.STATUS_OK)
 		{
-			Utils.writeResponseInExchange(t, validatorResponse.getCode(), validatorResponse.getBody());
+			CBackendUtils.writeResponseInExchange(t, validatorResponse.getCode(), validatorResponse.getBody());
 			return;
 		}
 	
@@ -119,7 +123,7 @@ public class CHandlerUpdateSession extends CBackendRequestHandler
 				JSONObject jsonResponse = new JSONObject();
 				jsonResponse.put("session_key", activeSession.getKey());
 				strResponseBody = jsonResponse.toString();
-				Utils.writeResponseInExchange(t, intResponseCode, strResponseBody);
+				CBackendUtils.writeResponseInExchange(t, intResponseCode, strResponseBody);
 				return;
 			} 
 			catch (JSONException e) 
@@ -132,6 +136,6 @@ public class CHandlerUpdateSession extends CBackendRequestHandler
 		// return statement error - status error
 		intResponseCode = EBackendResponsStatusCode.INTERNAL_ERROR;
 		strResponseBody = "Unable to retrive active session!";
-		Utils.writeResponseInExchange(t, intResponseCode, strResponseBody);			
+		CBackendUtils.writeResponseInExchange(t, intResponseCode, strResponseBody);			
 	}
 }

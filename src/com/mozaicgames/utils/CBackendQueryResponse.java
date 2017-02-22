@@ -1,6 +1,6 @@
 package com.mozaicgames.utils;
 
-import com.mozaicgames.backend.EBackendResponsStatusCode;
+import com.mozaicgames.core.EBackendResponsStatusCode;
 
 public class CBackendQueryResponse {
 

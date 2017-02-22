@@ -9,10 +9,10 @@ import java.io.OutputStream;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import com.mozaicgames.backend.EBackendResponsStatusCode;
+import com.mozaicgames.core.EBackendResponsStatusCode;
 import com.sun.net.httpserver.HttpExchange;
 
-public class Utils {
+public class CBackendUtils {
 
 	public static void writeResponseInExchange(HttpExchange excenge, EBackendResponsStatusCode responseStatus, String responseBody)
 	{

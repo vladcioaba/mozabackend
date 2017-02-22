@@ -1,4 +1,4 @@
-package com.mozaicgames.backend;
+package com.mozaicgames.utils;
 
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
