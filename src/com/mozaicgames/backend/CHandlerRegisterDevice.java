@@ -58,7 +58,7 @@ public class CHandlerRegisterDevice extends CBackendRequestHandler
 			// return database connection error - status retry
 			intResponseCode = EBackendResponsStatusCode.INVALID_DATA;
 			strResponseBody = "Bad input data!";
-			outputResponse(t, intResponseCode, strResponseBody);
+			Utils.writeResponseInExchange(t, intResponseCode, strResponseBody);
 			return;
 		}
 		
@@ -67,7 +67,7 @@ public class CHandlerRegisterDevice extends CBackendRequestHandler
 			// client version not allowed
 			intResponseCode = EBackendResponsStatusCode.CLIENT_OUT_OF_DATE;
 			strResponseBody = "Client out of date!";
-			outputResponse(t, intResponseCode, strResponseBody);
+			Utils.writeResponseInExchange(t, intResponseCode, strResponseBody);
 			return;
 		}
 		
@@ -111,7 +111,7 @@ public class CHandlerRegisterDevice extends CBackendRequestHandler
 			JSONObject jsonResponse = new JSONObject();
 			jsonResponse.put("device_token", newUUID);
 			strResponseBody = jsonResponse.toString();
-			outputResponse(t, intResponseCode, strResponseBody);
+			Utils.writeResponseInExchange(t, intResponseCode, strResponseBody);
 			
 			sqlConnection.commit();			
 		}
@@ -121,7 +121,7 @@ public class CHandlerRegisterDevice extends CBackendRequestHandler
 			// return statement error - status error
 			intResponseCode = EBackendResponsStatusCode.INTERNAL_ERROR;
 			strResponseBody = e.getMessage();
-			outputResponse(t, intResponseCode, strResponseBody);
+			Utils.writeResponseInExchange(t, intResponseCode, strResponseBody);
 		}
 		finally
 		{

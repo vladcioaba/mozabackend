@@ -14,7 +14,8 @@ import org.json.JSONObject;
 
 import com.mozaicgames.backend.CBackendRequestHandler;
 import com.mozaicgames.utils.AdvancedEncryptionStandard;
-import com.mozaicgames.utils.CBackendQuerryValidateDevice;
+import com.mozaicgames.utils.CBackendQueryResponse;
+import com.mozaicgames.utils.CBackendQueryValidateDevice;
 import com.mozaicgames.utils.Utils;
 import com.sun.net.httpserver.HttpExchange;
 
@@ -53,7 +54,7 @@ public class CHandlerRegisterUserAnonymous extends CBackendRequestHandler
 			// return database connection error - status retry
 			intResponseCode = EBackendResponsStatusCode.INVALID_DATA;
 			strResponseBody = "Bad input data!";
-			outputResponse(t, intResponseCode, strResponseBody);
+			Utils.writeResponseInExchange(t, intResponseCode, strResponseBody);
 			return;
 		}
 		
@@ -62,7 +63,7 @@ public class CHandlerRegisterUserAnonymous extends CBackendRequestHandler
 			// client version not allowed
 			intResponseCode = EBackendResponsStatusCode.CLIENT_OUT_OF_DATE;
 			strResponseBody = "Client out of date!";
-			outputResponse(t, intResponseCode, strResponseBody);
+			Utils.writeResponseInExchange(t, intResponseCode, strResponseBody);
 			return;
 		}
 		
@@ -79,13 +80,16 @@ public class CHandlerRegisterUserAnonymous extends CBackendRequestHandler
 			// return statement error - status error
 			intResponseCode = EBackendResponsStatusCode.INTERNAL_ERROR;
 			strResponseBody = ex.getMessage();
-			outputResponse(t, intResponseCode, strResponseBody);
+			Utils.writeResponseInExchange(t, intResponseCode, strResponseBody);
 			return;
 		}
 		
-		CBackendQuerryValidateDevice validatorDevice = new CBackendQuerryValidateDevice(getDataSource(), t);
-		if (false == validatorDevice.validateDeviceFromToken(deviceId))
+		CBackendQueryValidateDevice validatorDevice = new CBackendQueryValidateDevice(getDataSource(), deviceId);
+		CBackendQueryResponse validatorResponse = validatorDevice.execute();
+		
+		if (validatorResponse.getCode() != EBackendResponsStatusCode.STATUS_OK)
 		{
+			Utils.writeResponseInExchange(t, validatorResponse.getCode(), validatorResponse.getBody());
 			return;
 		}
 		
@@ -104,7 +108,7 @@ public class CHandlerRegisterUserAnonymous extends CBackendRequestHandler
 			int affectedRows = preparedStatementInsert.executeUpdate();
 			if (affectedRows == 0)
 			{
-				throw new JSONException("Nothing updated in database!");
+				throw new Exception("Nothing updated in database!");
 			}
 			
 			int newUserId = 0;
@@ -126,7 +130,7 @@ public class CHandlerRegisterUserAnonymous extends CBackendRequestHandler
 			affectedRows = preparedStatementUpdate.executeUpdate();
 			if (affectedRows == 0)
 			{
-				throw new JSONException("Nothing updated in database!");
+				throw new  Exception("Nothing updated in database!");
 			}
 			preparedStatementUpdate.close();
 			preparedStatementUpdate = null;
@@ -135,7 +139,7 @@ public class CHandlerRegisterUserAnonymous extends CBackendRequestHandler
 			JSONObject jsonResponse = new JSONObject();
 			jsonResponse.put("user_token", userToken);
 			strResponseBody = jsonResponse.toString();
-			outputResponse(t, intResponseCode, strResponseBody);
+			Utils.writeResponseInExchange(t, intResponseCode, strResponseBody);
 
 			sqlConnection.commit();
 		}
@@ -145,7 +149,7 @@ public class CHandlerRegisterUserAnonymous extends CBackendRequestHandler
 			// return statement error - status error
 			intResponseCode = EBackendResponsStatusCode.INTERNAL_ERROR;
 			strResponseBody = e.getMessage();
-			outputResponse(t, intResponseCode, strResponseBody);
+			Utils.writeResponseInExchange(t, intResponseCode, strResponseBody);
 		}
 		finally
 		{			

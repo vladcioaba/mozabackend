@@ -4,9 +4,40 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import com.mozaicgames.backend.EBackendResponsStatusCode;
+import com.sun.net.httpserver.HttpExchange;
 
 public class Utils {
 
+	public static void writeResponseInExchange(HttpExchange excenge, EBackendResponsStatusCode responseStatus, String responseBody)
+	{
+		try
+		{
+			JSONObject jsonResponse = new JSONObject();
+			jsonResponse.put("data", responseBody);
+			String strFinal = jsonResponse.toString();;
+			
+			excenge.sendResponseHeaders(responseStatus.getValue(), strFinal.length());
+			OutputStream os = excenge.getResponseBody();
+			os.write(strFinal.getBytes());
+			os.flush();
+			os.close();
+		}
+		catch (JSONException ex)
+		{
+			System.err.println("Error writing reps: " + ex.getMessage());
+		}
+		catch (IOException ex)
+		{
+			System.err.println("Error writing reps: " + ex.getMessage());
+		}
+	}
+	
 	public static String getStringFromStream(InputStream stream) throws IOException
 	{
 		InputStreamReader isr =  new InputStreamReader(stream, "utf-8");

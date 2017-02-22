@@ -8,20 +8,19 @@ import java.sql.SQLException;
 import javax.sql.DataSource;
 
 import com.mozaicgames.backend.EBackendResponsStatusCode;
-import com.sun.net.httpserver.HttpExchange;
 
-public class CBackendQuerryValidateDevice extends CBackendResponseWriter {
-
-	private final DataSource 			mDataSource;
-	private final HttpExchange 			mExchange;
+public class CBackendQueryValidateDevice implements IBackendQueryExecuter {
 	
-	public CBackendQuerryValidateDevice(DataSource dataSource, HttpExchange exchange)
+	private final DataSource		mDataSource;
+	private final long				mDeviceId;
+	
+	public CBackendQueryValidateDevice(DataSource dataSource, long deviceId)
 	{
 		mDataSource = dataSource;
-		mExchange = exchange;
+		mDeviceId = deviceId;
 	}
 	
-	public boolean validateDeviceFromToken(long deviceId)
+	public CBackendQueryResponse execute()
 	{
 		EBackendResponsStatusCode intResponseCode = EBackendResponsStatusCode.STATUS_OK;
 		String strResponseBody = "";
@@ -34,15 +33,13 @@ public class CBackendQuerryValidateDevice extends CBackendResponseWriter {
 			sqlConnection = mDataSource.getConnection();
 			String strQuerySelectDevice = "select device_blocked from devices where device_id=?";
 			preparedStatementSelectDevice = sqlConnection.prepareStatement(strQuerySelectDevice);
-			preparedStatementSelectDevice.setLong(1, deviceId);
+			preparedStatementSelectDevice.setLong(1, mDeviceId);
 			ResultSet resultSetDeviceQuery = preparedStatementSelectDevice.executeQuery();
 			if (resultSetDeviceQuery == null || !resultSetDeviceQuery.next())
 			{
 				// the device is invalid
 				intResponseCode = EBackendResponsStatusCode.INVALID_TOKEN_DEVICE;
-				strResponseBody = "Invalid device token!";
-				outputResponse(mExchange, intResponseCode, strResponseBody);
-				return false;
+				strResponseBody =  "Invalid device token!";				
 			}
 			else
 			{
@@ -50,9 +47,7 @@ public class CBackendQuerryValidateDevice extends CBackendResponseWriter {
 				{
 					// device is invalid
 					intResponseCode = EBackendResponsStatusCode.CLIENT_REJECTED;
-					strResponseBody = "Client is rejected!";
-					outputResponse(mExchange, intResponseCode, strResponseBody);
-					return false;
+					strResponseBody ="Client is rejected!";
 				}
 			}
 			preparedStatementSelectDevice.close();
@@ -64,8 +59,6 @@ public class CBackendQuerryValidateDevice extends CBackendResponseWriter {
 			// return statement error - status error
 			intResponseCode = EBackendResponsStatusCode.INTERNAL_ERROR;
 			strResponseBody = "Unable to retrive device data!";
-			outputResponse(mExchange, intResponseCode, strResponseBody);
-			return false;
 		}
 		finally
 		{
@@ -96,6 +89,6 @@ public class CBackendQuerryValidateDevice extends CBackendResponseWriter {
 			}
 		}
 		
-		return true;
+		return new CBackendQueryResponse(intResponseCode, strResponseBody);
 	}
 }

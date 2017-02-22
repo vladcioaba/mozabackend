@@ -53,7 +53,7 @@ public class CHandlerUpdateUser extends CBackendRequestHandler
 			// return database connection error - status retry
 			intResponseCode = EBackendResponsStatusCode.INVALID_DATA;
 			strResponseBody = "Bad input data!";
-			outputResponse(t, intResponseCode, strResponseBody);
+			Utils.writeResponseInExchange(t, intResponseCode, strResponseBody);
 			return;
 		}
 		
@@ -70,7 +70,7 @@ public class CHandlerUpdateUser extends CBackendRequestHandler
 			// return database connection error - status retry
 			intResponseCode = EBackendResponsStatusCode.INTERNAL_ERROR;
 			strResponseBody = e.getMessage();
-			outputResponse(t, intResponseCode, strResponseBody);
+			Utils.writeResponseInExchange(t, intResponseCode, strResponseBody);
 			return;
 		}		
 		
@@ -98,7 +98,7 @@ public class CHandlerUpdateUser extends CBackendRequestHandler
 			JSONObject jsonResponse = new JSONObject();
 			jsonResponse.put("device_token", newUUID);
 			strResponseBody = jsonResponse.toString();
-			outputResponse(t, intResponseCode, strResponseBody);
+			Utils.writeResponseInExchange(t, intResponseCode, strResponseBody);
 		}
 		catch (Exception e)
 		{
@@ -106,7 +106,7 @@ public class CHandlerUpdateUser extends CBackendRequestHandler
 			// return statement error - status error
 			intResponseCode = EBackendResponsStatusCode.INTERNAL_ERROR;
 			strResponseBody = e.getMessage();
-			outputResponse(t, intResponseCode, strResponseBody);
+			Utils.writeResponseInExchange(t, intResponseCode, strResponseBody);
 		}
 		finally
 		{

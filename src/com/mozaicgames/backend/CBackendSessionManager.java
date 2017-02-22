@@ -6,10 +6,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Date;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -65,22 +61,36 @@ public class CBackendSessionManager
 	
 	public synchronized CBackendSession getActiveSession(String sessionKey)
 	{
-		CBackendSession session = mActiveSessions.get(sessionKey);
-		return session;
+		return mActiveSessions.get(sessionKey);
 	}
 	
-	public synchronized CBackendSession createSession(long deviceId, int userId, String remoteAddress)
+	public synchronized CBackendSession getSessionFor(long deviceId, int userId)
 	{
+		final AdvancedEncryptionStandard encripter = new AdvancedEncryptionStandard(mEncriptionCode, "AES");
+		final String sessionPhrase = String.valueOf(deviceId) + "_" + String.valueOf(userId);
+		String sessionKey = null;
+		try {
+			sessionKey = encripter.encrypt(sessionPhrase);
+			if (isSessionValid(sessionKey))
+			{
+				return mActiveSessions.get(sessionKey);
+			}
+		} catch (Exception e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+			return null;
+		}
+		
+		
 		Connection sqlConnection = null;
 		PreparedStatement preparedStatementSelect = null;
-		PreparedStatement preparedStatementInsert = null;
 		try 
 		{
 			sqlConnection = mSqlDataSource.getConnection();
 			sqlConnection.setAutoCommit(false);
 			
 			// find the session in the database first
-			String strQuerySelect = "select session_id, session_creation_date, session_expire_date from sessions where device_id=? and user_id=? order by session_id desc limit 1;";
+			String strQuerySelect = "select session_id, session_expire_date from sessions where device_id=? and user_id=? order by session_id desc limit 1;";
 			preparedStatementSelect = sqlConnection.prepareStatement(strQuerySelect, Statement.RETURN_GENERATED_KEYS);
 			preparedStatementSelect.setLong(1, deviceId);
 			preparedStatementSelect.setInt(2, userId);
@@ -88,32 +98,69 @@ public class CBackendSessionManager
 			ResultSet response = preparedStatementSelect.executeQuery();			
 			long sessionId = 0;
 			long timestampNow = System.currentTimeMillis();
-			long timestampCreated = 0;
 			long timestampExpired = 0;
 			if (response != null && response.next())
 			{
 				sessionId = response.getLong(1);
-				timestampCreated = response.getTimestamp(2).getTime();
-				timestampExpired = response.getTimestamp(3).getTime();
+				timestampExpired = response.getTimestamp(1).getTime();
 			
 				preparedStatementSelect.close();
 				preparedStatementSelect = null;
 				
 				if (timestampNow < timestampExpired)
 				{
-					AdvancedEncryptionStandard encripter = new AdvancedEncryptionStandard(mEncriptionCode, "AES");
-					final String newSessionKey = encripter.encrypt(String.valueOf(sessionId));
-					CBackendSession newSession = new CBackendSession(sessionId, userId, deviceId, newSessionKey, timestampExpired, Calendar.getInstance().getTimeInMillis());
-					mActiveSessions.put(newSessionKey, newSession);
+					CBackendSession newSession = new CBackendSession(sessionId, userId, deviceId, sessionKey, timestampExpired, timestampNow);
 					return newSession;
-				}				
+				}
+			}
+		}
+		catch (Exception e) 
+		{
+			// could not get a connection
+			// return database connection error - status retry			
+			System.err.println("Register handler Null pointer exception: " + e.getMessage());
+		}
+		finally
+		{
+			if (preparedStatementSelect != null)
+			{
+				try  
+				{ 
+					preparedStatementSelect.close(); 
+				}  
+				catch (SQLException e)  
+				{ 
+					e.printStackTrace(); 
+				}
 			}			
+			
+			try 
+			{
+				sqlConnection.close();
+			} 
+			catch (SQLException e) 
+			{
+				e.printStackTrace();
+			}
+		}
+		return null;
+	}
+	
+	public synchronized CBackendSession createSession(long deviceId, int userId, String remoteAddress)
+	{
+		Connection sqlConnection = null;
+		PreparedStatement preparedStatementInsert = null;
+		try 
+		{
+			sqlConnection = mSqlDataSource.getConnection();
+			sqlConnection.setAutoCommit(false);
 			
 			// there is no session stored in the backend or the session was expired
 			// create new session data
+			long sessionId = 0;
 			final long timeToExpire = 300000;
-			timestampCreated = timestampNow;
-			timestampExpired = timestampCreated + timeToExpire;
+			final long timestampCreated = System.currentTimeMillis();
+			final long timestampExpired = timestampCreated + timeToExpire;
 			
 			// create session key
 			String strQueryInsert = "insert into sessions ( user_id, device_id, session_creation_date, session_expire_date, session_ip ) values (?,?,?,?,?);";
@@ -137,8 +184,9 @@ public class CBackendSessionManager
 			preparedStatementInsert.close();
 			preparedStatementInsert = null;
 			
-			AdvancedEncryptionStandard encripter = new AdvancedEncryptionStandard(mEncriptionCode, "AES");
-			final String newSessionKey = encripter.encrypt(String.valueOf(sessionId));
+			final AdvancedEncryptionStandard encripter = new AdvancedEncryptionStandard(mEncriptionCode, "AES");
+			final String sessionPhrase = String.valueOf(deviceId) + "_" + String.valueOf(userId);
+			final String newSessionKey = encripter.encrypt(sessionPhrase);
 			CBackendSession newSession = new CBackendSession(sessionId, userId, deviceId, newSessionKey, timestampExpired, timestampCreated);
 			mActiveSessions.put(newSessionKey, newSession);
 
@@ -152,19 +200,7 @@ public class CBackendSessionManager
 			System.err.println("Register handler Null pointer exception: " + e.getMessage());
 		}
 		finally
-		{
-			if (preparedStatementSelect != null)
-			{
-				try  
-				{ 
-					preparedStatementSelect.close(); 
-				}  
-				catch (SQLException e)  
-				{ 
-					e.printStackTrace(); 
-				}
-			}
-			
+		{			
 			if (preparedStatementInsert != null)
 			{
 				try  
@@ -188,6 +224,5 @@ public class CBackendSessionManager
 		}
 		return null;
 	}
-	
 	
 }

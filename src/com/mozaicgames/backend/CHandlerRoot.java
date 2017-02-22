@@ -4,6 +4,7 @@ import java.io.IOException;
 
 import javax.sql.DataSource;
 
+import com.mozaicgames.utils.Utils;
 import com.sun.net.httpserver.HttpExchange;
 
 public class CHandlerRoot extends CBackendRequestHandler 
@@ -15,6 +16,6 @@ public class CHandlerRoot extends CBackendRequestHandler
 	@Override
     public void handle(HttpExchange t) throws IOException 
 	{
-		super.outputResponse(t, EBackendResponsStatusCode.INVALID_REQUEST, "Invalid request address.");
+		Utils.writeResponseInExchange(t, EBackendResponsStatusCode.INVALID_REQUEST, "Invalid request address.");
     }
 }
