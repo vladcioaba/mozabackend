@@ -19,10 +19,11 @@ public class Utils {
 		try
 		{
 			JSONObject jsonResponse = new JSONObject();
-			jsonResponse.put("data", responseBody);
+			jsonResponse.put("status", responseStatus.getValue());
+			jsonResponse.put("body", responseBody);
 			String strFinal = jsonResponse.toString();;
 			
-			excenge.sendResponseHeaders(responseStatus.getValue(), strFinal.length());
+			excenge.sendResponseHeaders(200, strFinal.length());
 			OutputStream os = excenge.getResponseBody();
 			os.write(strFinal.getBytes());
 			os.flush();

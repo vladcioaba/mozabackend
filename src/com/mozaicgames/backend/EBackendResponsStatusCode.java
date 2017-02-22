@@ -2,7 +2,8 @@ package com.mozaicgames.backend;
 
 public enum EBackendResponsStatusCode 
 {
-		STATUS_OK					(200),
+		BAD_REQUEST					(0),
+		STATUS_OK					(2000),
 		INVALID_REQUEST				(4001),
 		INVALID_DATA				(4002),
 		INVALID_TOKEN_DEVICE		(4010),
