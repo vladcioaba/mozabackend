@@ -9,19 +9,21 @@ import org.json.JSONObject;
 
 import com.mozaicgames.core.CBackendRequestHandler;
 import com.mozaicgames.core.EBackendResponsStatusCode;
+import com.mozaicgames.utils.CBackendQueryResponse;
+import com.mozaicgames.utils.CBackendQueryValidateDevice;
 import com.mozaicgames.utils.CBackendSession;
 import com.mozaicgames.utils.CBackendSessionManager;
 import com.mozaicgames.utils.CBackendUtils;
 import com.sun.net.httpserver.HttpExchange;
 
-public class CHandlerRegisterGameData extends CBackendRequestHandler 
+public class CHandlerUpdateSession extends CBackendRequestHandler 
 {
 	private final CBackendSessionManager							mSessionManager;		
 	
-	private final String mKeyClientSessionToken	= "session_key";
+	private final String mKeySessionKey			= "session_key";
 	private final String mKeyClientVersion		= "client_version";
 
-	public CHandlerRegisterGameData(DataSource sqlDataSource, String minClientVersionAllowed, CBackendSessionManager sessionManager) throws Exception
+	public CHandlerUpdateSession(DataSource sqlDataSource, String minClientVersionAllowed, CBackendSessionManager sessionManager) throws Exception
 	{
 		super(sqlDataSource, minClientVersionAllowed);
 		mSessionManager = sessionManager;
@@ -30,28 +32,29 @@ public class CHandlerRegisterGameData extends CBackendRequestHandler
 			throw new Exception("sessionManager is null!");
 		}
 	}
-	
+
 	@Override
     public void handle(HttpExchange t) throws IOException 
-	{
+	{		
 		EBackendResponsStatusCode intResponseCode = EBackendResponsStatusCode.STATUS_OK;
 		String strResponseBody = "";
 		String strRequestBody = CBackendUtils.getStringFromStream(t.getRequestBody());
 		
 		String clientVersion = null;
 		String sessionKey = null;
+		
 		try 
 		{
 			JSONObject jsonRequestBody = new JSONObject(strRequestBody);
 			
-			if (jsonRequestBody.has(mKeyClientSessionToken) == false ||
+			if (jsonRequestBody.has(mKeySessionKey) == false ||
 				jsonRequestBody.has(mKeyClientVersion) == false)
 			{
 				throw new JSONException("Missing variables");
 			}
 		
 			clientVersion = jsonRequestBody.getString(mKeyClientVersion);
-			sessionKey = jsonRequestBody.getString(mKeyClientSessionToken);
+			sessionKey = jsonRequestBody.getString(mKeySessionKey);
 		}		
 		catch (JSONException e)
 		{
@@ -71,35 +74,59 @@ public class CHandlerRegisterGameData extends CBackendRequestHandler
 			CBackendUtils.writeResponseInExchange(t, intResponseCode, strResponseBody);
 			return;
 		}
-	
-		CBackendSession activeSession = mSessionManager.getActiveSessionFor(sessionKey);
-		if (activeSession == null)
+		
+		CBackendSession session = mSessionManager.getLastKnownSessionFor(sessionKey);
+		if (session != null)
 		{
-			intResponseCode = EBackendResponsStatusCode.INVALID_TOKEN_SESSION_KEY;
-			strResponseBody = "Invalid session key!";
-			CBackendUtils.writeResponseInExchange(t, intResponseCode, strResponseBody);
-			return;
-		}
-		else
-		{
+			CBackendQueryValidateDevice validatorDevice = new CBackendQueryValidateDevice(getDataSource(), session.getDeviceId());
+			CBackendQueryResponse validatorResponse = validatorDevice.execute();
+			
+			if (validatorResponse.getCode() != EBackendResponsStatusCode.STATUS_OK)
+			{
+				CBackendUtils.writeResponseInExchange(t, validatorResponse.getCode(), validatorResponse.getBody());
+				return;
+			}
+			
+			if (false == mSessionManager.isSessionValid(session))
+			{
+				final String remoteAddress = t.getRemoteAddress().getAddress().getHostAddress();
+				session = mSessionManager.createSession(session.getDeviceId(), session.getUserId(), remoteAddress);
+				
+				if (session == null)
+				{
+					// internal error
+					intResponseCode = EBackendResponsStatusCode.INVALID_TOKEN_SESSION_KEY;
+					strResponseBody = "Invalid session key!";
+					CBackendUtils.writeResponseInExchange(t, intResponseCode, strResponseBody);
+					return;
+				}
+			}			
+			
 			try 
 			{
 				JSONObject jsonResponse = new JSONObject();
-				jsonResponse.put("session_key", activeSession.getKey());
+				jsonResponse.put("session_key", session.getKey());
 				strResponseBody = jsonResponse.toString();
 				CBackendUtils.writeResponseInExchange(t, intResponseCode, strResponseBody);
 				return;
-			} 
+			}
 			catch (JSONException e) 
 			{
-				System.err.println(e.getMessage());
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
+			
+			intResponseCode = EBackendResponsStatusCode.INTERNAL_ERROR;
+			strResponseBody = "Internall error!";
+			CBackendUtils.writeResponseInExchange(t, intResponseCode, strResponseBody);
+			return;
 		}
-		
-		// error processing statement
-		// return statement error - status error
-		intResponseCode = EBackendResponsStatusCode.INTERNAL_ERROR;
-		strResponseBody = "Unable to retrive active session!";
-		CBackendUtils.writeResponseInExchange(t, intResponseCode, strResponseBody);			
+		else			
+		{
+			// client version not allowed
+			intResponseCode = EBackendResponsStatusCode.INVALID_TOKEN_SESSION_KEY;
+			strResponseBody = "Invalid session key!";
+			CBackendUtils.writeResponseInExchange(t, intResponseCode, strResponseBody);
+		}	
 	}
 }

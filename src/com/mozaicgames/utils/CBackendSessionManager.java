@@ -42,7 +42,7 @@ public class CBackendSessionManager
 		}
 	}
 	
-	private synchronized boolean isSessionValid(CBackendSession session)
+	public synchronized boolean isSessionValid(CBackendSession session)
 	{
 		long now = System.currentTimeMillis();
 		if (session != null)
@@ -52,22 +52,25 @@ public class CBackendSessionManager
 		return false;
 	}
 	
-	public synchronized CBackendSession getSessionFor(String sessionKey)
+	public synchronized CBackendSession getLastKnownSessionFor(String sessionKey)
 	{
 		CBackendSession session =  mActiveSessions.get(sessionKey);		
 		if (session == null)
 		{
 			// try to load it from dtabase
 			long sessionId = 0;
-			try {
+			try 
+			{
 				final CBackendAdvancedEncryptionStandard encripter = new CBackendAdvancedEncryptionStandard(mEncriptionCode, "AES");
 				sessionId = Long.parseLong(encripter.decrypt(sessionKey));
-			} catch (Exception e) {
+			} 
+			catch (Exception e) 
+			{
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 				return null;
 			}
-			
+						
 			Connection sqlConnection = null;
 			PreparedStatement preparedStatementSelect = null;
 			try 
@@ -91,12 +94,8 @@ public class CBackendSessionManager
 					preparedStatementSelect.close();
 					preparedStatementSelect = null;
 					
-					if (timestampNow < timestampExpired)
-					{
-						CBackendSession newSession = new CBackendSession(sessionId, userId, deviceId, sessionKey, timestampExpired, timestampNow);
-						mActiveSessions.put(sessionKey, newSession);
-						return newSession;
-					}
+					CBackendSession newSession = new CBackendSession(sessionId, userId, deviceId, sessionKey, timestampExpired, timestampNow);
+					return newSession;
 				}
 			}
 			catch (Exception e) 
@@ -128,9 +127,8 @@ public class CBackendSessionManager
 					e.printStackTrace();
 				}
 			}
-			
 		}
-		else if (isSessionValid(session))
+		else
 		{
 			return session;
 		}
@@ -138,14 +136,48 @@ public class CBackendSessionManager
 		return null;
 	}
 	
+	public synchronized CBackendSession getActiveSessionFor(String sessionKey)
+	{
+		CBackendSession session =  mActiveSessions.get(sessionKey);		
+		if (session == null)
+		{
+			session = getLastKnownSessionFor(sessionKey);
+			if (session != null && isSessionValid(session))
+			{
+				return session;
+			}
+			else
+			{
+				return null;
+			}
+		}
+		else
+		{
+			if (false == isSessionValid(session))
+			{
+				mActiveSessions.remove(session.getKey());
+			}
+			
+			return session;
+		}
+	}
+	
 	public synchronized CBackendSession getSessionFor(long deviceId, int userId)
 	{
 		// find cached session
 		for (CBackendSession session : mActiveSessions.values())
 		{
-			if (session.getUserId() == userId && session.getDeviceId() == deviceId && isSessionValid(session))
+			if (session.getUserId() == userId && session.getDeviceId() == deviceId)
 			{
-				return session;
+				if (isSessionValid(session))
+				{
+					return session;
+				}
+				else
+				{
+					mActiveSessions.remove(session.getKey());
+					break;
+				}
 			}
 		}
 		
@@ -174,10 +206,11 @@ public class CBackendSessionManager
 				preparedStatementSelect.close();
 				preparedStatementSelect = null;
 				
+				final CBackendAdvancedEncryptionStandard encripter = new CBackendAdvancedEncryptionStandard(mEncriptionCode, "AES");
+				final String sessionKey = encripter.encrypt(String.valueOf(sessionId));
+				
 				if (timestampNow < timestampExpired)
 				{
-					final CBackendAdvancedEncryptionStandard encripter = new CBackendAdvancedEncryptionStandard(mEncriptionCode, "AES");
-					final String sessionKey = encripter.encrypt(String.valueOf(sessionId));
 					CBackendSession newSession = new CBackendSession(sessionId, userId, deviceId, sessionKey, timestampExpired, timestampNow);
 					mActiveSessions.put(sessionKey, newSession);
 					return newSession;
