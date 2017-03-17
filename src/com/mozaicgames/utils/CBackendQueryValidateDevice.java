@@ -23,7 +23,7 @@ public class CBackendQueryValidateDevice implements IBackendQueryExecuter {
 	public CBackendQueryResponse execute()
 	{
 		EBackendResponsStatusCode intResponseCode = EBackendResponsStatusCode.STATUS_OK;
-		String strResponseBody = "";
+		String strResponseBody = "Device is ok!";
 		
 		PreparedStatement preparedStatementSelectDevice = null;
 		Connection sqlConnection = null;

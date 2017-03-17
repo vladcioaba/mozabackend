@@ -2,6 +2,7 @@ package com.mozaicgames.core;
 
 public enum EBackendResponsStatusCode 
 {
+	
 		BAD_REQUEST					(0),
 		STATUS_OK					(2000),
 		INVALID_REQUEST				(4001),

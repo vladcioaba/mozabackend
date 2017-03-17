@@ -21,5 +21,4 @@ public class CBackendSessionCleanerScheduler implements Runnable
     public void run() {
     	mSessionManager.cleanInvalidSessions();
     }
-    
 }

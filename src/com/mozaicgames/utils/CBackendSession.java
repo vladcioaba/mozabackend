@@ -8,9 +8,10 @@ public class CBackendSession
 	private final long			mDeviceId;
 	private final long			mExpireTime;
 	private final long			mCreationTime;
+	private final String		mIp;
 	private final String		mKey;
 	
-	public CBackendSession(long id, int userId, long deviceId, String key, long expireTime, long creationTime)
+	public CBackendSession(long id, int userId, long deviceId, String key, long expireTime, long creationTime, String ip)
 	{
 		mId = id;
 		mUserId = userId;
@@ -18,6 +19,7 @@ public class CBackendSession
 		mKey = key;
 		mExpireTime = expireTime;
 		mCreationTime = creationTime;
+		mIp = ip;
 	}
 	
 	public long getId()
@@ -50,4 +52,8 @@ public class CBackendSession
 		return mCreationTime;
 	}
 
+	public String getIp()
+	{
+		return mIp;
+	}
 }

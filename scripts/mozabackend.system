@@ -1,0 +1,10 @@
+[Unit]
+Description = Mozaic Backend service
+After = network.target
+
+[Service]
+ExecStart = /home/dev/launch_production.sh
+Restart = always
+
+[Install]
+WantedBy = multi-user.target

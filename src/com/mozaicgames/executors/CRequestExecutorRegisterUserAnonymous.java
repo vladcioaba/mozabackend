@@ -1,74 +1,39 @@
-package com.mozaicgames.handlers;
+package com.mozaicgames.executors;
 
-import java.io.IOException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 
-import javax.sql.DataSource;
-
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import com.mozaicgames.core.CBackendRequestHandler;
+import com.mozaicgames.core.CBackendRequestExecutor;
+import com.mozaicgames.core.CBackendRequestExecutorParameters;
+import com.mozaicgames.core.CBackendRequestExecutorResult;
 import com.mozaicgames.core.EBackendResponsStatusCode;
 import com.mozaicgames.utils.CBackendAdvancedEncryptionStandard;
 import com.mozaicgames.utils.CBackendQueryResponse;
 import com.mozaicgames.utils.CBackendQueryValidateDevice;
-import com.mozaicgames.utils.CBackendUtils;
-import com.sun.net.httpserver.HttpExchange;
 
-public class CHandlerRegisterUserAnonymous extends CBackendRequestHandler 
+public class CRequestExecutorRegisterUserAnonymous extends CBackendRequestExecutor
 {
-
-	private final String 							mEncriptionCode;
-	
-	private final String mKeyDeviceToken			= "device_token";
-	private final String mKeyClientVersion			= "client_version";
-
-	public CHandlerRegisterUserAnonymous(DataSource sqlDataSource, String encriptionConde, String minClientVersionAllowed) throws Exception
+	public CBackendRequestExecutorResult execute(JSONObject jsonData, CBackendRequestExecutorParameters parameters)
 	{
-		super(sqlDataSource, minClientVersionAllowed);
-		mEncriptionCode = encriptionConde;
-	}
-
-	@Override
-    public void handle(HttpExchange t) throws IOException 
-	{		
-		EBackendResponsStatusCode intResponseCode = EBackendResponsStatusCode.STATUS_OK;
-		String strResponseBody = "";
-		String strRequestBody = CBackendUtils.getStringFromStream(t.getRequestBody());
-		
-		String clientVersion = null;
 		String deviceToken = null;
 		try 
 		{
-			JSONObject jsonRequestBody = new JSONObject(strRequestBody);
-			clientVersion = jsonRequestBody.getString(mKeyClientVersion);
-			deviceToken = jsonRequestBody.getString(mKeyDeviceToken);
+			deviceToken = jsonData.getString(CRequestKeys.mKeyClientDeviceToken);
 		}		
 		catch (JSONException e)
 		{
 			// bad input
 			// return database connection error - status retry
-			intResponseCode = EBackendResponsStatusCode.INVALID_DATA;
-			strResponseBody = "Bad input data!";
-			CBackendUtils.writeResponseInExchange(t, intResponseCode, strResponseBody);
-			return;
+			return new CBackendRequestExecutorResult(EBackendResponsStatusCode.INVALID_DATA, "Bad input data!");
 		}
 		
-		if (CBackendUtils.compareStringIntegerValue(clientVersion, getMinClientVersionAllowed()) == -1)
-		{
-			// client version not allowed
-			intResponseCode = EBackendResponsStatusCode.CLIENT_OUT_OF_DATE;
-			strResponseBody = "Client out of date!";
-			CBackendUtils.writeResponseInExchange(t, intResponseCode, strResponseBody);
-			return;
-		}
-		
-		CBackendAdvancedEncryptionStandard encripter = new CBackendAdvancedEncryptionStandard(mEncriptionCode, "AES");
+		final CBackendAdvancedEncryptionStandard encripter = parameters.getEncriptionStandard();
 		long deviceId = 0;
 		try 
 		{
@@ -79,19 +44,15 @@ public class CHandlerRegisterUserAnonymous extends CBackendRequestHandler
 		{
 			// error processing statement
 			// return statement error - status error
-			intResponseCode = EBackendResponsStatusCode.INTERNAL_ERROR;
-			strResponseBody = ex.getMessage();
-			CBackendUtils.writeResponseInExchange(t, intResponseCode, strResponseBody);
-			return;
+			return new CBackendRequestExecutorResult(EBackendResponsStatusCode.INTERNAL_ERROR, "Unable to validate tokens!");
 		}
 		
-		CBackendQueryValidateDevice validatorDevice = new CBackendQueryValidateDevice(getDataSource(), deviceId);
-		CBackendQueryResponse validatorResponse = validatorDevice.execute();
+		final CBackendQueryValidateDevice validatorDevice = new CBackendQueryValidateDevice(parameters.getSqlDataSource(), deviceId);
+		final CBackendQueryResponse validatorResponse = validatorDevice.execute();
 		
 		if (validatorResponse.getCode() != EBackendResponsStatusCode.STATUS_OK)
 		{
-			CBackendUtils.writeResponseInExchange(t, validatorResponse.getCode(), validatorResponse.getBody());
-			return;
+			return new CBackendRequestExecutorResult(validatorResponse.getCode(), validatorResponse.getBody());
 		}
 		
 		Connection sqlConnection = null;
@@ -100,7 +61,7 @@ public class CHandlerRegisterUserAnonymous extends CBackendRequestHandler
 		
 		try 
 		{
-			sqlConnection = getDataSource().getConnection();
+			sqlConnection = parameters.getSqlDataSource().getConnection();
 			sqlConnection.setAutoCommit(false);
 		
 			String strQueryInsert = "insert into users ( user_creation_date ) values ( ? );";
@@ -119,8 +80,6 @@ public class CHandlerRegisterUserAnonymous extends CBackendRequestHandler
 				newUserId = restultLastInsert.getInt(1);
 			}
 			restultLastInsert.close();
-			preparedStatementInsert.close();
-			preparedStatementInsert = null;
 			
 			// update user id in device
 			String strQueryUpdate = "update devices set device_user_id=? where device_id=?;";
@@ -133,24 +92,18 @@ public class CHandlerRegisterUserAnonymous extends CBackendRequestHandler
 			{
 				throw new  Exception("Nothing updated in database!");
 			}
-			preparedStatementUpdate.close();
-			preparedStatementUpdate = null;
 			
 			String userToken = encripter.encrypt(String.valueOf(newUserId));			
 			JSONObject jsonResponse = new JSONObject();
-			jsonResponse.put("user_token", userToken);
-			strResponseBody = jsonResponse.toString();
-			CBackendUtils.writeResponseInExchange(t, intResponseCode, strResponseBody);
-
+			jsonResponse.put(CRequestKeys.mKeyClientUserToken, userToken);
 			sqlConnection.commit();
+			return new CBackendRequestExecutorResult(EBackendResponsStatusCode.STATUS_OK, jsonResponse.toString());
 		}
 		catch (Exception e)
 		{
 			// error processing statement
 			// return statement error - status error
-			intResponseCode = EBackendResponsStatusCode.INTERNAL_ERROR;
-			strResponseBody = e.getMessage();
-			CBackendUtils.writeResponseInExchange(t, intResponseCode, strResponseBody);
+			return new CBackendRequestExecutorResult(EBackendResponsStatusCode.INTERNAL_ERROR, e.getMessage());
 		}
 		finally
 		{			
@@ -159,7 +112,8 @@ public class CHandlerRegisterUserAnonymous extends CBackendRequestHandler
 				try  
 				{ 
 					preparedStatementInsert.close(); 
-				}  
+					preparedStatementInsert = null;
+					}  
 				catch (SQLException e)  
 				{ 
 					e.printStackTrace(); 
@@ -170,7 +124,8 @@ public class CHandlerRegisterUserAnonymous extends CBackendRequestHandler
 			{
 				try  
 				{ 
-					preparedStatementUpdate.close(); 
+					preparedStatementUpdate.close();
+					preparedStatementUpdate = null;
 				}  
 				catch (SQLException e)  
 				{ 
@@ -181,6 +136,7 @@ public class CHandlerRegisterUserAnonymous extends CBackendRequestHandler
 			try 
 			{
 				sqlConnection.close();
+				sqlConnection = null;
 			} 
 			catch (Exception e) 
 			{

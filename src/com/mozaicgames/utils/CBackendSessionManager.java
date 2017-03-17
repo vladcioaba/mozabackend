@@ -14,15 +14,15 @@ import javax.sql.DataSource;
 public class CBackendSessionManager 
 {
 	private final DataSource 								mSqlDataSource;
-	private final String 									mEncriptionCode; 
 	private final ConcurrentMap<String, CBackendSession> 	mActiveSessions;
+	private final CBackendAdvancedEncryptionStandard 		mEncripter;
 	
-	public CBackendSessionManager(DataSource sqlDataSource, String encriptionCode) throws Exception
+	public CBackendSessionManager(final DataSource sqlDataSource, final CBackendAdvancedEncryptionStandard encripter) throws Exception
 	{
 		mSqlDataSource = sqlDataSource;
-		mEncriptionCode = encriptionCode;
+		mEncripter = encripter;
 		mActiveSessions = new ConcurrentHashMap<>();
-		if (mSqlDataSource == null || mEncriptionCode == null)
+		if (mSqlDataSource == null || mEncripter == null)
 		{
 			throw new Exception("Invalid argument");
 		}
@@ -61,8 +61,7 @@ public class CBackendSessionManager
 			long sessionId = 0;
 			try 
 			{
-				final CBackendAdvancedEncryptionStandard encripter = new CBackendAdvancedEncryptionStandard(mEncriptionCode, "AES");
-				sessionId = Long.parseLong(encripter.decrypt(sessionKey));
+				sessionId = Long.parseLong(mEncripter.decrypt(sessionKey));
 			} 
 			catch (Exception e) 
 			{
@@ -79,22 +78,20 @@ public class CBackendSessionManager
 				sqlConnection.setAutoCommit(false);
 				
 				// find the session in the database first
-				String strQuerySelect = "select session_id, user_id, device_id session_expire_date from sessions where session_id=? order by session_id desc limit 1;";
+				String strQuerySelect = "select user_id, device_id, session_expire_date, session_ip from sessions where session_id=? order by session_id desc limit 1;";
 				preparedStatementSelect = sqlConnection.prepareStatement(strQuerySelect);
 				preparedStatementSelect.setLong(1, sessionId);
 				
 				ResultSet response = preparedStatementSelect.executeQuery();			
 				if (response != null && response.next())
 				{
-					final int userId = response.getInt(2);
-					final long deviceId = response.getLong(3);
-					final long timestampExpired = response.getTimestamp(4).getTime();
+					final int userId = response.getInt(1);
+					final long deviceId = response.getLong(2);
+					final long timestampExpired = response.getTimestamp(3).getTime();
 					final long timestampNow = System.currentTimeMillis();
+					final String sessionIp = response.getString(4);
 					
-					preparedStatementSelect.close();
-					preparedStatementSelect = null;
-					
-					CBackendSession newSession = new CBackendSession(sessionId, userId, deviceId, sessionKey, timestampExpired, timestampNow);
+					CBackendSession newSession = new CBackendSession(sessionId, userId, deviceId, sessionKey, timestampExpired, timestampNow, sessionIp);
 					return newSession;
 				}
 			}
@@ -110,7 +107,8 @@ public class CBackendSessionManager
 				{
 					try  
 					{ 
-						preparedStatementSelect.close(); 
+						preparedStatementSelect.close();
+						preparedStatementSelect = null;
 					}  
 					catch (SQLException e)  
 					{ 
@@ -121,6 +119,7 @@ public class CBackendSessionManager
 				try 
 				{
 					sqlConnection.close();
+					sqlConnection = null;
 				} 
 				catch (SQLException e) 
 				{
@@ -189,29 +188,24 @@ public class CBackendSessionManager
 			sqlConnection.setAutoCommit(false);
 			
 			// find the session in the database first
-			String strQuerySelect = "select session_id, session_expire_date from sessions where device_id=? and user_id=? order by session_id desc limit 1;";
+			String strQuerySelect = "select session_id, session_expire_date session_ip from sessions where device_id=? and user_id=? order by session_id desc limit 1;";
 			preparedStatementSelect = sqlConnection.prepareStatement(strQuerySelect);
 			preparedStatementSelect.setLong(1, deviceId);
 			preparedStatementSelect.setInt(2, userId);
 			
 			ResultSet response = preparedStatementSelect.executeQuery();			
-			long sessionId = 0;
-			long timestampNow = System.currentTimeMillis();
-			long timestampExpired = 0;
 			if (response != null && response.next())
 			{
-				sessionId = response.getLong(1);
-				timestampExpired = response.getTimestamp(2).getTime();
+				final long sessionId = response.getLong(1);
+				long timestampNow = System.currentTimeMillis();
+				final long timestampExpired = response.getTimestamp(2).getTime();
+				final String sessionIp = response.getString(3);
 			
-				preparedStatementSelect.close();
-				preparedStatementSelect = null;
-				
-				final CBackendAdvancedEncryptionStandard encripter = new CBackendAdvancedEncryptionStandard(mEncriptionCode, "AES");
-				final String sessionKey = encripter.encrypt(String.valueOf(sessionId));
+				final String sessionKey = mEncripter.encrypt(String.valueOf(sessionId));
 				
 				if (timestampNow < timestampExpired)
 				{
-					CBackendSession newSession = new CBackendSession(sessionId, userId, deviceId, sessionKey, timestampExpired, timestampNow);
+					CBackendSession newSession = new CBackendSession(sessionId, userId, deviceId, sessionKey, timestampExpired, timestampNow, sessionIp);
 					mActiveSessions.put(sessionKey, newSession);
 					return newSession;
 				}
@@ -230,6 +224,7 @@ public class CBackendSessionManager
 				try  
 				{ 
 					preparedStatementSelect.close(); 
+					preparedStatementSelect = null;
 				}  
 				catch (SQLException e)  
 				{ 
@@ -240,6 +235,7 @@ public class CBackendSessionManager
 			try 
 			{
 				sqlConnection.close();
+				sqlConnection = null;
 			} 
 			catch (SQLException e) 
 			{
@@ -288,12 +284,9 @@ public class CBackendSessionManager
 			{
 				return null;
 			}
-			preparedStatementInsert.close();
-			preparedStatementInsert = null;
-			
-			final CBackendAdvancedEncryptionStandard encripter = new CBackendAdvancedEncryptionStandard(mEncriptionCode, "AES");
-			final String newSessionKey = encripter.encrypt(String.valueOf(sessionId));
-			CBackendSession newSession = new CBackendSession(sessionId, userId, deviceId, newSessionKey, milisCurrent, milisLastOfTheDay);
+
+			final String newSessionKey = mEncripter.encrypt(String.valueOf(sessionId));
+			CBackendSession newSession = new CBackendSession(sessionId, userId, deviceId, newSessionKey, milisCurrent, milisLastOfTheDay, remoteAddress);
 			mActiveSessions.put(newSessionKey, newSession);
 
 			sqlConnection.commit();
@@ -311,7 +304,8 @@ public class CBackendSessionManager
 			{
 				try  
 				{ 
-					preparedStatementInsert.close(); 
+					preparedStatementInsert.close();
+					preparedStatementInsert = null;
 				}  
 				catch (SQLException e)  
 				{ 
@@ -322,6 +316,7 @@ public class CBackendSessionManager
 			try 
 			{
 				sqlConnection.close();
+				sqlConnection = null;
 			} 
 			catch (SQLException e) 
 			{

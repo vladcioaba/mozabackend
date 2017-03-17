@@ -1,21 +1,26 @@
 
 import org.apache.commons.dbcp2.BasicDataSource;
 
+import com.mozaicgames.core.CBackendRequestHandler;
 import com.mozaicgames.core.CBackendServer;
-import com.mozaicgames.core.CHandlerRoot;
-import com.mozaicgames.handlers.CHandlerRegisterDevice;
-import com.mozaicgames.handlers.CHandlerRegisterGameData;
-import com.mozaicgames.handlers.CHandlerRegisterUserAnonymous;
-import com.mozaicgames.handlers.CHandlerUpdateSession;
-import com.mozaicgames.handlers.CHandlerRegisterSession;
+import com.mozaicgames.executors.CRequestExecutorCheckDevice;
+import com.mozaicgames.executors.CRequestExecutorCheckServer;
+import com.mozaicgames.executors.CRequestExecutorRegisterDevice;
+import com.mozaicgames.executors.CRequestExecutorRegisterSession;
+import com.mozaicgames.executors.CRequestExecutorRegisterUserAnonymous;
+import com.mozaicgames.executors.CRequestExecutorUpdateDevice;
+import com.mozaicgames.executors.CRequestExecutorUpdateSession;
+import com.mozaicgames.utils.CBackendAdvancedEncryptionStandard;
 import com.mozaicgames.utils.CBackendSessionCleanerScheduler;
 import com.mozaicgames.utils.CBackendSessionManager;
 
 public class Main 
 {
 	
+	private static BasicDataSource									mDataSource = null;
 	private static CBackendSessionManager 							mSessionManager = null;
 	private static CBackendSessionCleanerScheduler					mSessionManagerCleaner = null;
+	private static CBackendAdvancedEncryptionStandard 				mEncripter = null; 
 	
 	public static void main(String[] args) 
 	{
@@ -50,12 +55,12 @@ public class Main
             }
         }
         
-        final String encriptionCode = "mozadev123";
-    	BasicDataSource ds = null;
         try 
         {
-        	ds = new BasicDataSource();
-        	mSessionManager = new CBackendSessionManager(ds, encriptionCode);
+            final String encriptionCode = "mozadev123";
+        	mDataSource = new BasicDataSource();
+        	mEncripter = new CBackendAdvancedEncryptionStandard(encriptionCode, "AES");
+        	mSessionManager = new CBackendSessionManager(mDataSource, mEncripter);
         	mSessionManagerCleaner = new CBackendSessionCleanerScheduler(mSessionManager);
         	mSessionManagerCleaner.startService();
         }
@@ -65,21 +70,26 @@ public class Main
             return;
         }
         
-        ds.setDriverClassName("com.mysql.jdbc.Driver");
-        ds.setUrl("jdbc:mysql://localhost:3306/mozaic");
-        ds.setUsername("dev");
-        ds.setPassword("Mozaic123!");
+        mDataSource.setDriverClassName("com.mysql.jdbc.Driver");
+        mDataSource.setUrl("jdbc:mysql://localhost:3306/mozaic");
+        mDataSource.setUsername("dev");
+        mDataSource.setPassword("Mozaic123!");
         
         final String minClientVersionAllowed = "1.0.0";
         CBackendServer backendServer = new CBackendServer();
+        
+        CBackendRequestHandler requestHandler = null;
+        
 		try 
         {
-			backendServer.registerHandler("", new CHandlerRoot(ds));
-			backendServer.registerHandler("register_device", new CHandlerRegisterDevice(ds, encriptionCode, minClientVersionAllowed));
-			backendServer.registerHandler("register_user_anonymous", new CHandlerRegisterUserAnonymous(ds, encriptionCode, minClientVersionAllowed));
-			backendServer.registerHandler("register_session", new CHandlerRegisterSession(ds, encriptionCode, minClientVersionAllowed, mSessionManager));
-			backendServer.registerHandler("register_game_data", new CHandlerRegisterGameData(ds, minClientVersionAllowed, mSessionManager));
-			backendServer.registerHandler("update_session", new CHandlerUpdateSession(ds, minClientVersionAllowed, mSessionManager));
+			requestHandler = new CBackendRequestHandler(mDataSource, mSessionManager, minClientVersionAllowed, mEncripter);
+			requestHandler.addRequestExecuter("register_device", new CRequestExecutorRegisterDevice());
+			requestHandler.addRequestExecuter("register_user_anonymous", new CRequestExecutorRegisterUserAnonymous());
+			requestHandler.addRequestExecuter("register_session", new CRequestExecutorRegisterSession());			
+			requestHandler.addRequestExecuter("update_device", new CRequestExecutorUpdateDevice());
+			requestHandler.addRequestExecuter("update_session", new CRequestExecutorUpdateSession());
+			requestHandler.addRequestExecuter("check_device_status", new CRequestExecutorCheckDevice());
+			requestHandler.addRequestExecuter("check_server_status", new CRequestExecutorCheckServer());
         }
 		catch (Exception e)
 		{
@@ -87,6 +97,7 @@ public class Main
             return;
 		}
 		
+		backendServer.registerHandler("end_point", requestHandler);
 		backendServer.startOnPort(port);
 	}
 

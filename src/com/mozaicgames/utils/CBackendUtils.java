@@ -4,41 +4,9 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.OutputStream;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import com.mozaicgames.core.EBackendResponsStatusCode;
-import com.sun.net.httpserver.HttpExchange;
-
-public class CBackendUtils {
-
-	public static void writeResponseInExchange(HttpExchange excenge, EBackendResponsStatusCode responseStatus, String responseBody)
-	{
-		try
-		{
-			JSONObject jsonResponse = new JSONObject();
-			jsonResponse.put("status", responseStatus.getValue());
-			jsonResponse.put("body", responseBody);
-			String strFinal = jsonResponse.toString();;
-			
-			excenge.sendResponseHeaders(200, strFinal.length());
-			OutputStream os = excenge.getResponseBody();
-			os.write(strFinal.getBytes());
-			os.flush();
-			os.close();
-		}
-		catch (JSONException ex)
-		{
-			System.err.println("Error writing reps: " + ex.getMessage());
-		}
-		catch (IOException ex)
-		{
-			System.err.println("Error writing reps: " + ex.getMessage());
-		}
-	}
-	
+public class CBackendUtils
+{
 	public static String getStringFromStream(InputStream stream) throws IOException
 	{
 		InputStreamReader isr =  new InputStreamReader(stream, "utf-8");
@@ -55,39 +23,42 @@ public class CBackendUtils {
 	
 	public static int compareStringIntegerValue(String s1, String s2)  
 	{  
-		final String delimeter = "\\."; 
-		String[] s1Tokens = s1.split(delimeter);  
-		String[] s2Tokens = s2.split(delimeter);  
-
-		int length = Math.max(s1Tokens.length, s2Tokens.length);
-		for (int i = 0; i < length; i++)  
-		{  
-			int s1Value = 0;
-			if (i < s1Tokens.length)
-			{
-				s1Value = Integer.parseInt(s1Tokens[i]);
+		final String pattern = "[0-9]{1,3}[.][0-9]{1,3}[.][0-9]{1,3}";
+		if (s1.matches(pattern) && s2.matches(pattern))
+		{		
+			final String delimeter = "\\."; 
+			final String[] s1Tokens = s1.split(delimeter);  
+			final String[] s2Tokens = s2.split(delimeter);  
+	
+			final int length = Math.max(s1Tokens.length, s2Tokens.length);
+			for (int i = 0; i < length; i++)  
+			{  
+				int s1Value = 0;
+				if (i < s1Tokens.length)
+				{
+					s1Value = Integer.parseInt(s1Tokens[i]);
+				}
+				
+			 	int s2Value = 0;
+			 	if (i < s2Tokens.length)
+			 	{
+			 		s2Value = Integer.parseInt(s2Tokens[i]);
+			 	}
+			 	
+			 	if (s1Value == s2Value)
+			 	{
+			 		continue;
+			 	}
+			 	if (s1Value < s2Value)
+			 	{
+			 		return -1;
+			 	}
+			 	else
+			 	{
+			 		return 1;
+			 	}
 			}
-			
-		 	int s2Value = 0;
-		 	if (i < s2Tokens.length)
-		 	{
-		 		s2Value = Integer.parseInt(s2Tokens[i]);
-		 	}
-		 	
-		 	if (s1Value == s2Value)
-		 	{
-		 		continue;
-		 	}
-		 	if (s1Value < s2Value)
-		 	{
-		 		return -1;
-		 	}
-		 	else
-		 	{
-		 		return 1;
-		 	}
 		}
 		return 0;  //values are equal
 	 } 
-
 }

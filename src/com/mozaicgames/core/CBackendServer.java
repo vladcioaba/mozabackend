@@ -48,7 +48,7 @@ public class CBackendServer
 		
 		mHttpServer.setExecutor(Executors.newCachedThreadPool());
 		mHttpServer.start();	
-		System.err.println("Server running on port: " + port);
+		System.out.println("Server running on port: " + port);
 		return true;
 	}
 	
