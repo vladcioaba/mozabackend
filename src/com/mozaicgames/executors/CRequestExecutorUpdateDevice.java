@@ -66,8 +66,6 @@ public class CRequestExecutorUpdateDevice extends CBackendRequestExecutor
 			
 			CSqlBuilderUpdate sqlBuilderUpdate = new CSqlBuilderUpdate()
 					.table("devices")
-					.set("device_core_version", parameters.getClientCoreVersion())
-					.set("device_app_version", parameters.getClientAppVersion())
 					.set("device_update_time", new Timestamp(System.currentTimeMillis()).toString())
 					.where("device_id="+deviceId);
 			
@@ -87,7 +85,19 @@ public class CRequestExecutorUpdateDevice extends CBackendRequestExecutor
 			{
 				final String devicePlatform = jsonData.getString(CRequestKeys.mKeyDevicePlatform);
 				sqlBuilderUpdate.set("device_platform", devicePlatform);
-			}	
+			}
+			
+			if (jsonData.has(CRequestKeys.mKeyDeviceClientAppVersion))
+			{
+				final String deviceAppVersion = jsonData.getString(CRequestKeys.mKeyDeviceClientAppVersion);
+				sqlBuilderUpdate.set("device_app_version", deviceAppVersion);
+			}
+			
+			if (jsonData.has(CRequestKeys.mKeyDeviceClientCoreVersion))
+			{
+				final String deviceCoreVersion = jsonData.getString(CRequestKeys.mKeyDeviceClientCoreVersion);
+				sqlBuilderUpdate.set("device_core_version", deviceCoreVersion);
+			}
 			
 			final String strQueryUpdate = sqlBuilderUpdate.toString(); 
 			preparedStatementUpdate = sqlConnection.prepareStatement(strQueryUpdate, PreparedStatement.RETURN_GENERATED_KEYS);

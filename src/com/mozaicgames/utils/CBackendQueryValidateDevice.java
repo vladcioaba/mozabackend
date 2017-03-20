@@ -32,7 +32,11 @@ public class CBackendQueryValidateDevice implements IBackendQueryExecuter {
 		{
 			sqlConnection = mDataSource.getConnection();
 			
-			final CSqlBuilderSelect sqlBuilderSelect = new CSqlBuilderSelect().column("device_blocked").from("devices").where("device_id="+mDeviceId);			
+			final CSqlBuilderSelect sqlBuilderSelect = new CSqlBuilderSelect()
+					.column("device_blocked")
+					.from("devices")
+					.where("device_id=" + mDeviceId);		
+			
 			final String strQuerySelectDevice = sqlBuilderSelect.toString();
 			preparedStatementSelectDevice = sqlConnection.prepareStatement(strQuerySelectDevice);
 			ResultSet resultSetDeviceQuery = preparedStatementSelectDevice.executeQuery();

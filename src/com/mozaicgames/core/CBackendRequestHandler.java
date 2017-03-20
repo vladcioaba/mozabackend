@@ -11,6 +11,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import com.mozaicgames.executors.CRequestKeys;
 import com.mozaicgames.utils.CBackendAdvancedEncryptionStandard;
 import com.mozaicgames.utils.CBackendSessionManager;
 import com.mozaicgames.utils.CBackendUtils;
@@ -24,10 +25,7 @@ public class CBackendRequestHandler implements HttpHandler
 	private final String 								mMinClientVersionAllowed;
 	private final CBackendAdvancedEncryptionStandard	mEncripter;
 
-	private final String 								mKeyClientCoreVersion		= "client_core_version";
-	private final String 								mKeyClientAppVersion		= "client_app_version";
 	private final String								mKeyRequestArray			= "requests";
-	
 	private final String 								mKeyRequestName				= "name";
 	private final String 								mKeyRequestData				= "data";
 	
@@ -72,8 +70,8 @@ public class CBackendRequestHandler implements HttpHandler
 		try 
 		{
 			jsonRequestBody = new JSONObject(strRequestBody);
-			strClientCoreVersion = jsonRequestBody.getString(mKeyClientCoreVersion);
-			strClientAppVersion = jsonRequestBody.getString(mKeyClientAppVersion);
+			strClientCoreVersion = jsonRequestBody.getString(CRequestKeys.mKeyDeviceClientCoreVersion);
+			strClientAppVersion = jsonRequestBody.getString(CRequestKeys.mKeyDeviceClientAppVersion);
 			jsonRequestsArray = jsonRequestBody.getJSONArray(mKeyRequestArray);
 		}
 		catch (JSONException ex)
@@ -84,7 +82,7 @@ public class CBackendRequestHandler implements HttpHandler
 			continueExecution = false;
 		}
 		
-		if (continueExecution && CBackendUtils.compareStringIntegerValue(mMinClientVersionAllowed, strClientCoreVersion) == -1)  
+		if (continueExecution && CBackendUtils.compareStringIntegerValue(mMinClientVersionAllowed, strClientCoreVersion) > 0)  
 		{
 			jsonResponseBody = CBackendRequestExecutorResult.toJSONObject(EBackendResponsStatusCode.CLIENT_OUT_OF_DATE, "Invalid application version!");
 			continueExecution = false;

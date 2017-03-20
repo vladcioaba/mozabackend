@@ -16,4 +16,6 @@ public class CRequestKeys
 	public static final String mKeyDeviceModel				= "device_model";
 	public static final String mKeyDeviceOsVersion 			= "device_os_version";
 	public static final String mKeyDevicePlatform			= "device_platform";
+	public static final String mKeyDeviceClientCoreVersion  = "client_core_version";
+	public static final String mKeyDeviceClientAppVersion   = "client_app_version";
 }

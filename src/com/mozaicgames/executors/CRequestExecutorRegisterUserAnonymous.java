@@ -110,7 +110,7 @@ public class CRequestExecutorRegisterUserAnonymous extends CBackendRequestExecut
 			
 			
 			final CSqlBuilderInsert sqlBuilderInsertNewUserData = new CSqlBuilderInsert()
-					.into("usersdata")
+					.into("usersgamedata")
 					.value("user_id", Integer.toString(newUserId))
 					.value("data_magnet_on", defaultValueMagnetOn)
 					.value("data_left_handed_on", defaultValueLeftHandedOn)

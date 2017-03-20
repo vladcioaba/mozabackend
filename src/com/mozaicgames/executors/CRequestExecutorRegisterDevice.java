@@ -14,6 +14,7 @@ import com.mozaicgames.core.CBackendRequestExecutorParameters;
 import com.mozaicgames.core.CBackendRequestExecutorResult;
 import com.mozaicgames.core.EBackendResponsStatusCode;
 import com.mozaicgames.utils.CBackendAdvancedEncryptionStandard;
+import com.mozaicgames.utils.CSqlBuilderInsert;
 
 public class CRequestExecutorRegisterDevice extends CBackendRequestExecutor 
 {
@@ -24,11 +25,15 @@ public class CRequestExecutorRegisterDevice extends CBackendRequestExecutor
 		String deviceModel = null;
 		String deviceOsVerrsion = null;
 		String devicePlatform = null;
+		String deviceClientCoreVersion = null;
+		String deviceClientAppVersion = null;
 		try 
 		{
 			deviceModel = jsonData.getString(CRequestKeys.mKeyDeviceModel);
 			deviceOsVerrsion= jsonData.getString(CRequestKeys.mKeyDeviceOsVersion);
-			devicePlatform = jsonData.getString(CRequestKeys.mKeyDevicePlatform);			
+			devicePlatform = jsonData.getString(CRequestKeys.mKeyDevicePlatform);
+			deviceClientCoreVersion = jsonData.getString(CRequestKeys.mKeyDeviceClientCoreVersion);
+			deviceClientAppVersion = jsonData.getString(CRequestKeys.mKeyDeviceClientAppVersion);
 		}		
 		catch (JSONException e)
 		{
@@ -46,17 +51,20 @@ public class CRequestExecutorRegisterDevice extends CBackendRequestExecutor
 			sqlConnection.setAutoCommit(false);
 			final String remoteAddress = parameters.getRemoteAddress();
 			
-			String strQueryInsert = "insert into devices (device_model, device_os_version, device_platform, device_core_version, device_app_version, device_first_ip, device_creation_time, device_update_time) values (?,?,?,?,?,?,?,?);";
-			preparedStatementInsert = sqlConnection.prepareStatement(strQueryInsert, PreparedStatement.RETURN_GENERATED_KEYS);
-			preparedStatementInsert.setString(1, deviceModel);
-			preparedStatementInsert.setString(2, deviceOsVerrsion);
-			preparedStatementInsert.setString(3, devicePlatform);
-			preparedStatementInsert.setString(4, parameters.getClientCoreVersion());
-			preparedStatementInsert.setString(5, parameters.getClientAppVersion());
-			preparedStatementInsert.setString(6, remoteAddress);
 			final Timestamp creationTime = new Timestamp(System.currentTimeMillis());
-			preparedStatementInsert.setTimestamp(7, creationTime);
-			preparedStatementInsert.setTimestamp(8, creationTime);
+			final CSqlBuilderInsert sqlBuilderInsert = new CSqlBuilderInsert()
+					.into("devices")
+					.value("device_model", deviceModel)
+					.value("device_os_version", deviceOsVerrsion)
+					.value("device_platform", devicePlatform)
+					.value("device_core_version", deviceClientCoreVersion)
+					.value("device_app_version", deviceClientAppVersion)
+					.value("device_first_ip", remoteAddress)
+					.value("device_creation_time", creationTime.toString())
+					.value("device_update_time", creationTime.toString());
+			
+			final String strQueryInsert = sqlBuilderInsert.toString();
+			preparedStatementInsert = sqlConnection.prepareStatement(strQueryInsert, PreparedStatement.RETURN_GENERATED_KEYS);
 			
 			int affectedRows = preparedStatementInsert.executeUpdate();
 			if (affectedRows == 0)
