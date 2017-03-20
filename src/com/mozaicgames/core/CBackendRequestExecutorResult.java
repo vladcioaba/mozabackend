@@ -6,7 +6,7 @@ import org.json.JSONObject;
 public class CBackendRequestExecutorResult 
 {
 	private final EBackendResponsStatusCode		mCodeStatus;
-	private	final String						mStrBody;								
+	private	final String						mStrBody;							
 	
 	private final static String 				mKeyResponseStatus			= "status";
 	private final static String 				mKeyResponseBody			= "body";
@@ -19,6 +19,17 @@ public class CBackendRequestExecutorResult
 	
 	public JSONObject toJSONObject()
 	{
+		try 
+		{
+			JSONObject jsonObj = new JSONObject(mStrBody);
+			return toJSONObject(mCodeStatus, jsonObj);
+		} 
+		catch (JSONException e) 
+		{
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
 		return toJSONObject(mCodeStatus, mStrBody);
 	}
 	

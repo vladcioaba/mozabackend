@@ -11,8 +11,8 @@ import javax.crypto.spec.SecretKeySpec;
 import org.apache.commons.codec.binary.Base64;
 
 
-public class CBackendAdvancedEncryptionStandard {
-
+public class CBackendAdvancedEncryptionStandard 
+{
 	private String encryptionKey;
 	private String encryptionAlgorithm;
     

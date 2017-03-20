@@ -15,21 +15,16 @@ import com.mozaicgames.core.EBackendResponsStatusCode;
 import com.mozaicgames.utils.CBackendAdvancedEncryptionStandard;
 import com.mozaicgames.utils.CBackendQueryResponse;
 import com.mozaicgames.utils.CBackendQueryValidateDevice;
+import com.mozaicgames.utils.CSqlBuilderUpdate;
 
 public class CRequestExecutorUpdateDevice extends CBackendRequestExecutor
 {
 	@Override
 	public CBackendRequestExecutorResult execute(JSONObject jsonData, CBackendRequestExecutorParameters parameters) 
 	{	
-		String deviceModel = null;
-		String deviceOsVerrsion = null;
-		String devicePlatform = null;
 		String deviceToken = null;
 		try 
 		{
-			deviceModel = jsonData.getString(CRequestKeys.mKeyDeviceModel);
-			deviceOsVerrsion = jsonData.getString(CRequestKeys.mKeyDeviceOsVersion);
-			devicePlatform = jsonData.getString(CRequestKeys.mKeyDevicePlatform);	
 			deviceToken = jsonData.getString(CRequestKeys.mKeyClientDeviceToken);
 		}		
 		catch (JSONException e)
@@ -66,20 +61,36 @@ public class CRequestExecutorUpdateDevice extends CBackendRequestExecutor
 		
 		try 
 		{
-			
 			sqlConnection = parameters.getSqlDataSource().getConnection();
 			sqlConnection.setAutoCommit(false);
 			
-			String strQueryInsert = "update devices set device_model=?, device_os_version=?, device_platform=?, device_core_version=?, device_app_version=?, device_update_time=? where device_id=?;";
-			preparedStatementUpdate = sqlConnection.prepareStatement(strQueryInsert, PreparedStatement.RETURN_GENERATED_KEYS);
-			preparedStatementUpdate.setString(1, deviceModel);
-			preparedStatementUpdate.setString(2, deviceOsVerrsion);
-			preparedStatementUpdate.setString(3, devicePlatform);
-			preparedStatementUpdate.setString(4, parameters.getClientCoreVersion());
-			preparedStatementUpdate.setString(5, parameters.getClientAppVersion());
-			final Timestamp creationTime = new Timestamp(System.currentTimeMillis());
-			preparedStatementUpdate.setTimestamp(6, creationTime);
-			preparedStatementUpdate.setLong(7, deviceId);
+			CSqlBuilderUpdate sqlBuilderUpdate = new CSqlBuilderUpdate()
+					.table("devices")
+					.set("device_core_version", parameters.getClientCoreVersion())
+					.set("device_app_version", parameters.getClientAppVersion())
+					.set("device_update_time", new Timestamp(System.currentTimeMillis()).toString())
+					.where("device_id="+deviceId);
+			
+			if (jsonData.has(CRequestKeys.mKeyDeviceModel))
+			{
+				final String deviceModel = jsonData.getString(CRequestKeys.mKeyDeviceModel);
+				sqlBuilderUpdate.set("device_model", deviceModel);
+			}
+			
+			if (jsonData.has(CRequestKeys.mKeyDeviceOsVersion))
+			{
+				final String deviceOsVerrsion = jsonData.getString(CRequestKeys.mKeyDeviceOsVersion);
+				sqlBuilderUpdate.set("device_os_version", deviceOsVerrsion);
+			}
+			
+			if (jsonData.has(CRequestKeys.mKeyDevicePlatform))
+			{
+				final String devicePlatform = jsonData.getString(CRequestKeys.mKeyDevicePlatform);
+				sqlBuilderUpdate.set("device_platform", devicePlatform);
+			}	
+			
+			final String strQueryUpdate = sqlBuilderUpdate.toString(); 
+			preparedStatementUpdate = sqlConnection.prepareStatement(strQueryUpdate, PreparedStatement.RETURN_GENERATED_KEYS);
 			
 			int affectedRows = preparedStatementUpdate.executeUpdate();
 			if (affectedRows == 0)

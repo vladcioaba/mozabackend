@@ -1,7 +1,6 @@
 package com.mozaicgames.utils;
 
-public interface IBackendQueryExecuter {
-	
-	public CBackendQueryResponse execute();
-	
+public interface IBackendQueryExecuter 
+{	
+	public CBackendQueryResponse execute();	
 }

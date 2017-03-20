@@ -16,6 +16,8 @@ import com.mozaicgames.core.EBackendResponsStatusCode;
 import com.mozaicgames.utils.CBackendAdvancedEncryptionStandard;
 import com.mozaicgames.utils.CBackendQueryResponse;
 import com.mozaicgames.utils.CBackendQueryValidateDevice;
+import com.mozaicgames.utils.CSqlBuilderInsert;
+import com.mozaicgames.utils.CSqlBuilderUpdate;
 
 public class CRequestExecutorRegisterUserAnonymous extends CBackendRequestExecutor
 {
@@ -56,25 +58,29 @@ public class CRequestExecutorRegisterUserAnonymous extends CBackendRequestExecut
 		}
 		
 		Connection sqlConnection = null;
-		PreparedStatement preparedStatementInsert = null;
-		PreparedStatement preparedStatementUpdate = null;
+		PreparedStatement preparedStatementInsertUser = null;
+		PreparedStatement preparedStatementUpdateDevice = null;
+		PreparedStatement preparedStatementInsertUserData = null;
 		
 		try 
 		{
 			sqlConnection = parameters.getSqlDataSource().getConnection();
 			sqlConnection.setAutoCommit(false);
 		
-			String strQueryInsert = "insert into users ( user_creation_date ) values ( ? );";
-			preparedStatementInsert = sqlConnection.prepareStatement(strQueryInsert, PreparedStatement.RETURN_GENERATED_KEYS);
-			preparedStatementInsert.setTimestamp(1, new Timestamp(System.currentTimeMillis()));
-			int affectedRows = preparedStatementInsert.executeUpdate();
+			final CSqlBuilderInsert sqlBuilderInsertNewUser = new CSqlBuilderInsert()
+					.into("users")
+					.value("user_creation_date", new Timestamp(System.currentTimeMillis()).toString());
+			
+			final String strQueryInsertUser = sqlBuilderInsertNewUser.toString();
+			preparedStatementInsertUser = sqlConnection.prepareStatement(strQueryInsertUser, PreparedStatement.RETURN_GENERATED_KEYS);
+			int affectedRows = preparedStatementInsertUser.executeUpdate();
 			if (affectedRows == 0)
 			{
 				throw new Exception("Nothing updated in database!");
 			}
 			
 			int newUserId = 0;
-			ResultSet restultLastInsert = preparedStatementInsert.getGeneratedKeys();
+			ResultSet restultLastInsert = preparedStatementInsertUser.getGeneratedKeys();
 			if (restultLastInsert.next())
 			{
 				newUserId = restultLastInsert.getInt(1);
@@ -82,20 +88,56 @@ public class CRequestExecutorRegisterUserAnonymous extends CBackendRequestExecut
 			restultLastInsert.close();
 			
 			// update user id in device
-			String strQueryUpdate = "update devices set device_user_id=? where device_id=?;";
-			preparedStatementUpdate =  sqlConnection.prepareStatement(strQueryUpdate);
-			preparedStatementUpdate.setInt(1, newUserId);
-			preparedStatementUpdate.setLong(2, deviceId);
+			final CSqlBuilderUpdate sqlBuilderUpdate = new CSqlBuilderUpdate()
+					.table("devices")
+					.set("device_user_id", Integer.toString(newUserId))
+					.where("device_id=" + deviceId);
 			
-			affectedRows = preparedStatementUpdate.executeUpdate();
+			final String strQueryUpdate = sqlBuilderUpdate.toString();
+			preparedStatementUpdateDevice =  sqlConnection.prepareStatement(strQueryUpdate);
+			
+			affectedRows = preparedStatementUpdateDevice.executeUpdate();
 			if (affectedRows == 0)
 			{
 				throw new  Exception("Nothing updated in database!");
 			}
 			
+			final String defaultValueMagnetOn = "1";
+			final String defaultValueLeftHandedOn = "0";
+			final String defaultValueMusicOn = "1";
+			final String defaultValueSfxOn = "1";
+			final String defaultValueCredits = "100";
+			
+			
+			final CSqlBuilderInsert sqlBuilderInsertNewUserData = new CSqlBuilderInsert()
+					.into("usersdata")
+					.value("user_id", Integer.toString(newUserId))
+					.value("data_magnet_on", defaultValueMagnetOn)
+					.value("data_left_handed_on", defaultValueLeftHandedOn)
+					.value("data_music_on", defaultValueMusicOn)
+					.value("data_sfx_on", defaultValueSfxOn)
+					.value("data_credits", defaultValueCredits);
+			
+			final String strQueryInsertUserData = sqlBuilderInsertNewUserData.toString();
+			preparedStatementInsertUserData = sqlConnection.prepareStatement(strQueryInsertUserData, PreparedStatement.RETURN_GENERATED_KEYS);
+			affectedRows = preparedStatementInsertUserData.executeUpdate();
+			if (affectedRows == 0)
+			{
+				throw new Exception("Nothing updated in database!");
+			}			
+
+			JSONObject responseUserData = new JSONObject();
+
+			responseUserData.put(CRequestKeys.mKeyUserDataMagnetOn, defaultValueMagnetOn);
+			responseUserData.put(CRequestKeys.mKeyUserDataLeftHandedOn, defaultValueLeftHandedOn);
+			responseUserData.put(CRequestKeys.mKeyUserDataMusicOn, defaultValueMusicOn);
+			responseUserData.put(CRequestKeys.mKeyUserDataSfxOn, defaultValueSfxOn);
+			responseUserData.put(CRequestKeys.mKeyUserDataCredits, defaultValueCredits);
+			
 			String userToken = encripter.encrypt(String.valueOf(newUserId));			
 			JSONObject jsonResponse = new JSONObject();
 			jsonResponse.put(CRequestKeys.mKeyClientUserToken, userToken);
+			jsonResponse.put(CRequestKeys.mKeyClientUserData, responseUserData);
 			sqlConnection.commit();
 			return new CBackendRequestExecutorResult(EBackendResponsStatusCode.STATUS_OK, jsonResponse.toString());
 		}
@@ -107,12 +149,12 @@ public class CRequestExecutorRegisterUserAnonymous extends CBackendRequestExecut
 		}
 		finally
 		{			
-			if (preparedStatementInsert != null)
+			if (preparedStatementInsertUser != null)
 			{
 				try  
 				{ 
-					preparedStatementInsert.close(); 
-					preparedStatementInsert = null;
+					preparedStatementInsertUser.close(); 
+					preparedStatementInsertUser = null;
 					}  
 				catch (SQLException e)  
 				{ 
@@ -120,12 +162,25 @@ public class CRequestExecutorRegisterUserAnonymous extends CBackendRequestExecut
 				}
 			}
 			
-			if (preparedStatementUpdate != null)
+			if (preparedStatementUpdateDevice != null)
 			{
 				try  
 				{ 
-					preparedStatementUpdate.close();
-					preparedStatementUpdate = null;
+					preparedStatementUpdateDevice.close();
+					preparedStatementUpdateDevice = null;
+				}  
+				catch (SQLException e)  
+				{ 
+					e.printStackTrace(); 
+				}
+			}
+			
+			if (preparedStatementInsertUser != null)
+			{
+				try  
+				{ 
+					preparedStatementInsertUser.close();
+					preparedStatementInsertUser = null;
 				}  
 				catch (SQLException e)  
 				{ 
