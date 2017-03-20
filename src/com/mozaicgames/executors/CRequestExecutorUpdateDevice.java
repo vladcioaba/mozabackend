@@ -5,57 +5,25 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 
-import org.json.JSONException;
 import org.json.JSONObject;
 
 import com.mozaicgames.core.CBackendRequestExecutor;
 import com.mozaicgames.core.CBackendRequestExecutorParameters;
 import com.mozaicgames.core.CBackendRequestExecutorResult;
 import com.mozaicgames.core.EBackendResponsStatusCode;
-import com.mozaicgames.utils.CBackendAdvancedEncryptionStandard;
-import com.mozaicgames.utils.CBackendQueryResponse;
-import com.mozaicgames.utils.CBackendQueryValidateDevice;
 import com.mozaicgames.utils.CSqlBuilderUpdate;
 
 public class CRequestExecutorUpdateDevice extends CBackendRequestExecutor
 {
 	@Override
+	public boolean isSessionTokenValidationNeeded() 
+	{ 
+		return true; 
+	}
+	
+	@Override
 	public CBackendRequestExecutorResult execute(JSONObject jsonData, CBackendRequestExecutorParameters parameters) 
 	{	
-		String deviceToken = null;
-		try 
-		{
-			deviceToken = jsonData.getString(CRequestKeys.mKeyClientDeviceToken);
-		}		
-		catch (JSONException e)
-		{
-			// bad input
-			// return database connection error - status retry
-			return new CBackendRequestExecutorResult(EBackendResponsStatusCode.INVALID_DATA, "Invalid input data!");
-		}
-		
-		final CBackendAdvancedEncryptionStandard encripter = parameters.getEncriptionStandard();
-		long deviceId = 0;
-		try 
-		{
-			// decrypt device id from token
-			deviceId = Long.parseLong(encripter.decrypt(deviceToken));
-		}
-		catch (Exception ex)
-		{
-			// error processing statement
-			// return statement error - status error
-			return new CBackendRequestExecutorResult(EBackendResponsStatusCode.INTERNAL_ERROR, "Unable to validate tokens!");
-		}
-		
-		final CBackendQueryValidateDevice validatorDevice = new CBackendQueryValidateDevice(parameters.getSqlDataSource(), deviceId);
-		final CBackendQueryResponse validatorResponse = validatorDevice.execute();
-		
-		if (validatorResponse.getCode() != EBackendResponsStatusCode.STATUS_OK)
-		{
-			return new CBackendRequestExecutorResult(validatorResponse.getCode(), validatorResponse.getBody());
-		}
-		
 		Connection sqlConnection = null;
 		PreparedStatement preparedStatementUpdate = null;
 		
@@ -67,7 +35,7 @@ public class CRequestExecutorUpdateDevice extends CBackendRequestExecutor
 			CSqlBuilderUpdate sqlBuilderUpdate = new CSqlBuilderUpdate()
 					.table("devices")
 					.set("device_update_time", new Timestamp(System.currentTimeMillis()).toString())
-					.where("device_id="+deviceId);
+					.where("device_id=" + parameters.getDeviceId());
 			
 			if (jsonData.has(CRequestKeys.mKeyDeviceModel))
 			{
@@ -109,7 +77,8 @@ public class CRequestExecutorUpdateDevice extends CBackendRequestExecutor
 			}		
 			
 			JSONObject jsonResponse = new JSONObject();
-			jsonResponse.put(CRequestKeys.mKeyClientDeviceToken, deviceToken);
+			final String newDeviceToken = parameters.getEncriptionStandard().encrypt(Long.toString(parameters.getDeviceId()));
+			jsonResponse.put(CRequestKeys.mKeyClientDeviceToken, newDeviceToken);
 			sqlConnection.commit();			
 			return new CBackendRequestExecutorResult(EBackendResponsStatusCode.STATUS_OK, jsonResponse.toString());
 		}

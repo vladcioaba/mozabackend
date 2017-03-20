@@ -9,5 +9,7 @@ public abstract class CBackendRequestExecutor
 		
 	}
 	
+	public boolean isSessionTokenValidationNeeded() { return false; }
+	
 	abstract public CBackendRequestExecutorResult execute(JSONObject jsonData, CBackendRequestExecutorParameters parameters);
 }

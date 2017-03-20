@@ -36,7 +36,7 @@ public class CRequestExecutorUpdateSession extends CBackendRequestExecutor
 		final CBackendSessionManager sessionManager = parameters.getSessionManager();		
 		final String remoteAddress = parameters.getRemoteAddress();
 		CBackendSession activeSession = sessionManager.getActiveSessionFor(deviceToken);
-		if (activeSession == null) 
+		if (activeSession == null)
 		{
 			CBackendSession lastKnownSession = sessionManager.getLastKnownSessionFor(deviceToken);
 			if (lastKnownSession == null)
@@ -52,7 +52,7 @@ public class CRequestExecutorUpdateSession extends CBackendRequestExecutor
 		{
 			deviceId = activeSession.getDeviceId();
 			userId = activeSession.getUserId();
-			createNewSession = activeSession.getIp().equals(parameters.getRemoteAddress()) == false;			
+			createNewSession = activeSession.getIp().equals(remoteAddress) == false;			
 		}
 		
 		final CBackendQueryValidateDevice validatorDevice = new CBackendQueryValidateDevice(parameters.getSqlDataSource(), deviceId);

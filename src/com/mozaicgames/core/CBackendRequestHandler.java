@@ -13,6 +13,9 @@ import org.json.JSONObject;
 
 import com.mozaicgames.executors.CRequestKeys;
 import com.mozaicgames.utils.CBackendAdvancedEncryptionStandard;
+import com.mozaicgames.utils.CBackendQueryResponse;
+import com.mozaicgames.utils.CBackendQueryValidateDevice;
+import com.mozaicgames.utils.CBackendSession;
 import com.mozaicgames.utils.CBackendSessionManager;
 import com.mozaicgames.utils.CBackendUtils;
 import com.sun.net.httpserver.HttpExchange;
@@ -26,6 +29,7 @@ public class CBackendRequestHandler implements HttpHandler
 	private final CBackendAdvancedEncryptionStandard	mEncripter;
 
 	private final String								mKeyRequestArray			= "requests";
+	private final String								mKeyResponseObject 			= "response";
 	private final String 								mKeyRequestName				= "name";
 	private final String 								mKeyRequestData				= "data";
 	
@@ -92,12 +96,6 @@ public class CBackendRequestHandler implements HttpHandler
 		{
 			jsonResponseBody = null;			
 			final JSONArray jsonResponseArray = new JSONArray();
-			final CBackendRequestExecutorParameters parameters = new CBackendRequestExecutorParameters(remoteAddress,
-																									   mEncripter,
-																									   mSqlDataSource,
-																								       mSessionManager,
-																									   strClientCoreVersion,
-																									   strClientAppVersion);
 			
 			final int jsonRequestsArrayLength = jsonRequestsArray.length();
 			for (int i = 0; i < jsonRequestsArrayLength; i++) 
@@ -149,37 +147,105 @@ public class CBackendRequestHandler implements HttpHandler
 				}
 				
 				// execute request				
-				if (mExecuters.containsKey(strRequestName))
+				JSONObject jsonExecutorResponse = new JSONObject();
+				try 
 				{
+					jsonExecutorResponse.put(mKeyRequestName, strRequestName);
+				} 
+				catch (JSONException e1) 
+				{
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+					continue;
+				}
+				
+				try 
+				{
+					if (mExecuters.containsKey(strRequestName) == false)
+					{
+						throw new CBackendRequestException(EBackendResponsStatusCode.INVALID_REQUEST, "Unknown request name!");
+					}
+					CBackendRequestExecutor executor = mExecuters.get(strRequestName);
+				
+					String deviceToken = null;
+					long deviceId = 0;
+					int userId = 0;
+					
+					if (executor.isSessionTokenValidationNeeded())
+					{
+						try 
+						{
+							deviceToken = jsonRequestData.getString(CRequestKeys.mKeyClientSessionToken);
+						}		
+						catch (JSONException e)
+						{
+							// bad input
+							// return database connection error - status retry
+							throw new CBackendRequestException(EBackendResponsStatusCode.INVALID_DATA, "Invalid input data!");
+						}
+						
+						CBackendSession activeSession = mSessionManager.getActiveSessionFor(deviceToken);
+						if (activeSession == null)
+						{
+							CBackendSession lastKnownSession = mSessionManager.getLastKnownSessionFor(deviceToken);
+							if (lastKnownSession == null)
+							{
+								throw new CBackendRequestException(EBackendResponsStatusCode.INVALID_TOKEN_SESSION_KEY, "Unknown session token!");
+							}
+							
+							deviceId = lastKnownSession.getDeviceId();
+							userId = lastKnownSession.getUserId();
+						}
+						else
+						{
+							if (activeSession.getIp().equals(remoteAddress) == false)
+							{
+								throw new CBackendRequestException(EBackendResponsStatusCode.INVALID_TOKEN_SESSION_KEY, "Unknown session token!");
+							}
+							deviceId = activeSession.getDeviceId();
+							userId = activeSession.getUserId();
+						}
+						
+						final CBackendQueryValidateDevice validatorDevice = new CBackendQueryValidateDevice(mSqlDataSource, deviceId);
+						final CBackendQueryResponse validatorResponse = validatorDevice.execute();		
+						if (validatorResponse.getCode() != EBackendResponsStatusCode.STATUS_OK)
+						{
+							throw new CBackendRequestException(validatorResponse.getCode(), validatorResponse.getBody());
+						}
+					}
+					
+					final CBackendRequestExecutorParameters parameters = new CBackendRequestExecutorParameters(remoteAddress,
+							   mEncripter,
+							   mSqlDataSource,
+						       mSessionManager,
+							   strClientCoreVersion,
+							   strClientAppVersion,
+							   userId,
+							   deviceId);
+											
 					try 
 					{
-						CBackendRequestExecutor executor = mExecuters.get(strRequestName);
-						JSONObject jsonExecutorResponse = executor.execute(jsonRequestData, parameters).toJSONObject();
-						jsonExecutorResponse.put(mKeyRequestName, strRequestName);
-						jsonResponseArray.put(jsonExecutorResponse);
+						jsonExecutorResponse.put(mKeyResponseObject, executor.execute(jsonRequestData, parameters).toJSONObject());
 					}
 					catch (JSONException e) 
 					{
-						e.printStackTrace();
+						throw new CBackendRequestException(EBackendResponsStatusCode.INTERNAL_ERROR, "Ex: " + e.getMessage());
+					}
+				}
+				catch (CBackendRequestException e)
+				{
+					try 
+					{
+						jsonExecutorResponse.put(mKeyResponseObject, CBackendRequestExecutorResult.toJSONObject(e.getStatus(), e.getBody()));
+					}
+					catch (JSONException e1) 
+					{
+						e1.printStackTrace();
 						continue;
 					}
 				}
-				else
-				{
-					// object at index i does not have a jsonobject data.
-					JSONObject jsonExecutorResponse = CBackendRequestExecutorResult.toJSONObject(EBackendResponsStatusCode.INVALID_REQUEST, "Unknown request name!");
-					try 
-					{
-						jsonExecutorResponse.put(mKeyRequestName, strRequestName);
-					} 
-					catch (JSONException e1) 
-					{
-						// TODO Auto-generated catch block
-						e1.printStackTrace();
-					}
-					jsonResponseArray.put(jsonExecutorResponse);
-					continue;
-				}
+								
+				jsonResponseArray.put(jsonExecutorResponse);
 			}
 			
 			if (jsonResponseBody == null)
