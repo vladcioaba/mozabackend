@@ -75,7 +75,7 @@ public class CBackendQueryValidateDevice implements IBackendQueryExecuter {
 				}  
 				catch (SQLException e)  
 				{ 
-					e.printStackTrace(); 
+					System.err.println(e.getMessage()); 
 				}
 				preparedStatementSelectDevice = null;
 			}
@@ -88,7 +88,7 @@ public class CBackendQueryValidateDevice implements IBackendQueryExecuter {
 				}  
 				catch (SQLException e)  
 				{ 
-					e.printStackTrace(); 
+					System.err.println(e.getMessage()); 
 				}
 				sqlConnection = null;
 			}

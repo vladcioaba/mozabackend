@@ -12,8 +12,9 @@ import com.mozaicgames.core.CBackendRequestExecutor;
 import com.mozaicgames.core.CBackendRequestExecutorParameters;
 import com.mozaicgames.core.EBackendResponsStatusCode;
 import com.mozaicgames.utils.CSqlBuilderUpdate;
+import com.sun.org.apache.xpath.internal.operations.Bool;
 
-public class CRequestExecutorUpdateDevice extends CBackendRequestExecutor
+public class CRequestExecutorUpdateUserGameData extends CBackendRequestExecutor
 {
 	@Override
 	public boolean isSessionTokenValidationNeeded() 
@@ -23,7 +24,7 @@ public class CRequestExecutorUpdateDevice extends CBackendRequestExecutor
 	
 	@Override
 	public JSONObject execute(JSONObject jsonData, CBackendRequestExecutorParameters parameters) throws CBackendRequestException
-	{	
+	{
 		Connection sqlConnection = null;
 		PreparedStatement preparedStatementUpdate = null;
 		
@@ -33,38 +34,37 @@ public class CRequestExecutorUpdateDevice extends CBackendRequestExecutor
 			sqlConnection.setAutoCommit(false);
 			
 			CSqlBuilderUpdate sqlBuilderUpdate = new CSqlBuilderUpdate()
-					.table("devices")
-					.set("device_update_time", new Timestamp(System.currentTimeMillis()).toString())
-					.where("device_id=" + parameters.getDeviceId());
+					.table("usersgamedata")
+					.where("user_id=" + parameters.getUserId());
 			
-			if (jsonData.has(CRequestKeys.mKeyDeviceModel))
+			if (jsonData.has(CRequestKeys.mKeyUserDataMagnetOn))
 			{
-				final String deviceModel = jsonData.getString(CRequestKeys.mKeyDeviceModel);
-				sqlBuilderUpdate.set("device_model", deviceModel);
+				final int deviceMagnetOn = jsonData.getBoolean(CRequestKeys.mKeyUserDataMagnetOn) ? 1 : 0;
+				sqlBuilderUpdate.set("data_magnet_on", Integer.toString(deviceMagnetOn));
 			}
 			
-			if (jsonData.has(CRequestKeys.mKeyDeviceOsVersion))
+			if (jsonData.has(CRequestKeys.mKeyUserDataLeftHandedOn))
 			{
-				final String deviceOsVerrsion = jsonData.getString(CRequestKeys.mKeyDeviceOsVersion);
-				sqlBuilderUpdate.set("device_os_version", deviceOsVerrsion);
+				final int deviceLeftHandedOn = jsonData.getBoolean(CRequestKeys.mKeyUserDataLeftHandedOn) ? 1 : 0;
+				sqlBuilderUpdate.set("data_left_handed_on", Integer.toString(deviceLeftHandedOn));
 			}
 			
-			if (jsonData.has(CRequestKeys.mKeyDevicePlatform))
+			if (jsonData.has(CRequestKeys.mKeyUserDataMusicOn))
 			{
-				final String devicePlatform = jsonData.getString(CRequestKeys.mKeyDevicePlatform);
-				sqlBuilderUpdate.set("device_platform", devicePlatform);
+				final int deviceMusicOn = jsonData.getBoolean(CRequestKeys.mKeyUserDataMusicOn) ? 1 : 0;
+				sqlBuilderUpdate.set("data_music_on", Integer.toString(deviceMusicOn));
 			}
 			
-			if (jsonData.has(CRequestKeys.mKeyDeviceClientAppVersion))
+			if (jsonData.has(CRequestKeys.mKeyUserDataSfxOn))
 			{
-				final String deviceAppVersion = jsonData.getString(CRequestKeys.mKeyDeviceClientAppVersion);
-				sqlBuilderUpdate.set("device_app_version", deviceAppVersion);
+				final int deviceSfxOn = jsonData.getBoolean(CRequestKeys.mKeyUserDataSfxOn) ? 1 : 0;
+				sqlBuilderUpdate.set("data_sfx_on", Integer.toString(deviceSfxOn));
 			}
 			
-			if (jsonData.has(CRequestKeys.mKeyDeviceClientCoreVersion))
+			if (jsonData.has(CRequestKeys.mKeyUserDataCredits))
 			{
-				final String deviceCoreVersion = jsonData.getString(CRequestKeys.mKeyDeviceClientCoreVersion);
-				sqlBuilderUpdate.set("device_core_version", deviceCoreVersion);
+				final int deviceCredits = jsonData.getInt(CRequestKeys.mKeyUserDataCredits);
+				sqlBuilderUpdate.set("data_credits", Integer.toString(deviceCredits));
 			}
 			
 			final String strQueryUpdate = sqlBuilderUpdate.toString(); 
@@ -77,8 +77,6 @@ public class CRequestExecutorUpdateDevice extends CBackendRequestExecutor
 			}		
 			
 			JSONObject jsonResponse = new JSONObject();
-			final String newDeviceToken = parameters.getEncriptionStandard().encrypt(Long.toString(parameters.getDeviceId()));
-			jsonResponse.put(CRequestKeys.mKeyClientDeviceToken, newDeviceToken);
 			sqlConnection.commit();			
 			return toJSONObject(EBackendResponsStatusCode.STATUS_OK, jsonResponse);
 		}
@@ -111,5 +109,4 @@ public class CRequestExecutorUpdateDevice extends CBackendRequestExecutor
 			}
 		}
 	}
-	
 }

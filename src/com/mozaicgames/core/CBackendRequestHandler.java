@@ -140,7 +140,7 @@ public class CBackendRequestHandler implements HttpHandler
 					catch (JSONException e1) 
 					{
 						// TODO Auto-generated catch block
-						e1.printStackTrace();
+						System.err.println(e1.getMessage());
 					}
 					jsonResponseArray.put(jsonExecutorResponse);
 					continue;
@@ -155,7 +155,7 @@ public class CBackendRequestHandler implements HttpHandler
 				catch (JSONException e1) 
 				{
 					// TODO Auto-generated catch block
-					e1.printStackTrace();
+					System.err.println(e1.getMessage());
 					continue;
 				}
 				
@@ -241,7 +241,7 @@ public class CBackendRequestHandler implements HttpHandler
 					}
 					catch (JSONException e1) 
 					{
-						e1.printStackTrace();
+						System.err.println(e1.getMessage());;
 						continue;
 					}
 				}

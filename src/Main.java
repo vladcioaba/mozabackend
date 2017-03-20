@@ -10,6 +10,7 @@ import com.mozaicgames.executors.CRequestExecutorRegisterSession;
 import com.mozaicgames.executors.CRequestExecutorRegisterUserAnonymous;
 import com.mozaicgames.executors.CRequestExecutorUpdateDevice;
 import com.mozaicgames.executors.CRequestExecutorUpdateSession;
+import com.mozaicgames.executors.CRequestExecutorUpdateUserGameData;
 import com.mozaicgames.utils.CBackendAdvancedEncryptionStandard;
 import com.mozaicgames.utils.CBackendSessionCleanerScheduler;
 import com.mozaicgames.utils.CBackendSessionManager;
@@ -88,6 +89,7 @@ public class Main
 			requestHandler.addRequestExecuter("register_session", new CRequestExecutorRegisterSession());			
 			requestHandler.addRequestExecuter("update_device", new CRequestExecutorUpdateDevice());
 			requestHandler.addRequestExecuter("update_session", new CRequestExecutorUpdateSession());
+			requestHandler.addRequestExecuter("update_usergame_data", new CRequestExecutorUpdateUserGameData());
 			requestHandler.addRequestExecuter("check_device_status", new CRequestExecutorCheckDevice());
 			requestHandler.addRequestExecuter("check_server_status", new CRequestExecutorCheckServer());
         }

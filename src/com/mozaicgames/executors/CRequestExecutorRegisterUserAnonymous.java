@@ -139,7 +139,7 @@ public class CRequestExecutorRegisterUserAnonymous extends CBackendRequestExecut
 			jsonResponse.put(CRequestKeys.mKeyClientUserToken, userToken);
 			jsonResponse.put(CRequestKeys.mKeyClientUserData, responseUserData);
 			sqlConnection.commit();
-			return toJSONObject(EBackendResponsStatusCode.STATUS_OK, jsonResponse.toString());
+			return toJSONObject(EBackendResponsStatusCode.STATUS_OK, jsonResponse);
 		}
 		catch (Exception e)
 		{
@@ -155,10 +155,10 @@ public class CRequestExecutorRegisterUserAnonymous extends CBackendRequestExecut
 				{ 
 					preparedStatementInsertUser.close(); 
 					preparedStatementInsertUser = null;
-					}  
+				}  
 				catch (SQLException e)  
 				{ 
-					e.printStackTrace(); 
+					System.err.println(e.getMessage()); 
 				}
 			}
 			
@@ -171,7 +171,7 @@ public class CRequestExecutorRegisterUserAnonymous extends CBackendRequestExecut
 				}  
 				catch (SQLException e)  
 				{ 
-					e.printStackTrace(); 
+					System.err.println(e.getMessage()); 
 				}
 			}
 			
@@ -184,7 +184,7 @@ public class CRequestExecutorRegisterUserAnonymous extends CBackendRequestExecut
 				}  
 				catch (SQLException e)  
 				{ 
-					e.printStackTrace(); 
+					System.err.println(e.getMessage()); 
 				}
 			}
 			
@@ -195,7 +195,7 @@ public class CRequestExecutorRegisterUserAnonymous extends CBackendRequestExecut
 			} 
 			catch (Exception e) 
 			{
-				e.printStackTrace();
+				System.err.println(e.getMessage());
 			}
 		}
 	}

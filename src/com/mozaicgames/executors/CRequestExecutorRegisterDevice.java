@@ -86,7 +86,7 @@ public class CRequestExecutorRegisterDevice extends CBackendRequestExecutor
 			JSONObject jsonResponse = new JSONObject();
 			jsonResponse.put(CRequestKeys.mKeyClientDeviceToken, newUUID);
 			sqlConnection.commit();			
-			return toJSONObject(EBackendResponsStatusCode.STATUS_OK, jsonResponse.toString());
+			return toJSONObject(EBackendResponsStatusCode.STATUS_OK, jsonResponse);
 		}
 		catch (Exception e)
 		{
@@ -105,7 +105,7 @@ public class CRequestExecutorRegisterDevice extends CBackendRequestExecutor
 					} 
 				catch (SQLException e) 
 				{
-					e.printStackTrace();
+					System.err.println(e.getMessage());
 				}
 			}
 			try 
@@ -115,7 +115,7 @@ public class CRequestExecutorRegisterDevice extends CBackendRequestExecutor
 			} 
 			catch (Exception e) 
 			{
-				e.printStackTrace();
+				System.err.println(e.getMessage());
 			}
 		}
 	}

@@ -7,6 +7,7 @@ import com.mozaicgames.core.CBackendRequestException;
 import com.mozaicgames.core.CBackendRequestExecutor;
 import com.mozaicgames.core.CBackendRequestExecutorParameters;
 import com.mozaicgames.core.EBackendResponsStatusCode;
+import com.mozaicgames.utils.CBackendQuerryGetUserGameData;
 import com.mozaicgames.utils.CBackendQueryResponse;
 import com.mozaicgames.utils.CBackendQueryValidateDevice;
 import com.mozaicgames.utils.CBackendSession;
@@ -79,7 +80,9 @@ public class CRequestExecutorUpdateSession extends CBackendRequestExecutor
 			{
 				JSONObject jsonResponse = new JSONObject();
 				jsonResponse.put(CRequestKeys.mKeyClientSessionToken, activeSession.getKey());
-				throw new CBackendRequestException(EBackendResponsStatusCode.STATUS_OK, jsonResponse.toString());
+				jsonResponse.put(CRequestKeys.mKeyClientUserData, CBackendQuerryGetUserGameData.getUserGameData(userId, parameters.getSqlDataSource()));
+				
+				return toJSONObject(EBackendResponsStatusCode.STATUS_OK, jsonResponse);
 			} 
 			catch (JSONException e)
 			{
@@ -89,6 +92,6 @@ public class CRequestExecutorUpdateSession extends CBackendRequestExecutor
 		
 		// error processing statement
 		// return statement error - status error
-		return toJSONObject(EBackendResponsStatusCode.INTERNAL_ERROR, "Unable to retrive active session!");
+		throw new CBackendRequestException(EBackendResponsStatusCode.INTERNAL_ERROR, "Unable to retrive active session!");
 	}
 }

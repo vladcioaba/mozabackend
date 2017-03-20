@@ -67,7 +67,7 @@ public class CBackendSessionManager
 			catch (Exception e) 
 			{
 				// TODO Auto-generated catch block
-				e.printStackTrace();
+				System.err.println(e.getMessage());
 				return null;
 			}
 
@@ -121,7 +121,7 @@ public class CBackendSessionManager
 					} 
 					catch (SQLException e) 
 					{
-						e.printStackTrace();
+						System.err.println("Ex: " + e.getMessage());
 					}
 				}
 
@@ -132,7 +132,7 @@ public class CBackendSessionManager
 				} 
 				catch (SQLException e) 
 				{
-					e.printStackTrace();
+					System.err.println("Ex: " + e.getMessage());
 				}
 			}
 		} 
@@ -245,7 +245,7 @@ public class CBackendSessionManager
 				} 
 				catch (SQLException e) 
 				{
-					e.printStackTrace();
+					System.err.println(e.getMessage());
 				}
 			}
 
@@ -256,7 +256,7 @@ public class CBackendSessionManager
 			} 
 			catch (SQLException e) 
 			{
-				e.printStackTrace();
+				System.err.println(e.getMessage());
 			}
 		}
 		return null;
@@ -331,7 +331,7 @@ public class CBackendSessionManager
 				} 
 				catch (SQLException e) 
 				{
-					e.printStackTrace();
+					System.err.println(e.getMessage());
 				}
 			}
 
@@ -342,7 +342,7 @@ public class CBackendSessionManager
 			} 
 			catch (SQLException e) 
 			{
-				e.printStackTrace();
+				System.err.println(e.getMessage());
 			}
 		}
 		return null;
