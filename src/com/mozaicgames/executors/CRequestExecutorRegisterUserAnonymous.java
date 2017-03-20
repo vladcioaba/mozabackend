@@ -9,9 +9,9 @@ import java.sql.Timestamp;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import com.mozaicgames.core.CBackendRequestException;
 import com.mozaicgames.core.CBackendRequestExecutor;
 import com.mozaicgames.core.CBackendRequestExecutorParameters;
-import com.mozaicgames.core.CBackendRequestExecutorResult;
 import com.mozaicgames.core.EBackendResponsStatusCode;
 import com.mozaicgames.utils.CBackendAdvancedEncryptionStandard;
 import com.mozaicgames.utils.CBackendQueryResponse;
@@ -21,7 +21,7 @@ import com.mozaicgames.utils.CSqlBuilderUpdate;
 
 public class CRequestExecutorRegisterUserAnonymous extends CBackendRequestExecutor
 {
-	public CBackendRequestExecutorResult execute(JSONObject jsonData, CBackendRequestExecutorParameters parameters)
+	public JSONObject execute(JSONObject jsonData, CBackendRequestExecutorParameters parameters) throws CBackendRequestException
 	{
 		String deviceToken = null;
 		try 
@@ -32,7 +32,7 @@ public class CRequestExecutorRegisterUserAnonymous extends CBackendRequestExecut
 		{
 			// bad input
 			// return database connection error - status retry
-			return new CBackendRequestExecutorResult(EBackendResponsStatusCode.INVALID_DATA, "Bad input data!");
+			throw new CBackendRequestException(EBackendResponsStatusCode.INVALID_DATA, "Bad input data!");
 		}
 		
 		final CBackendAdvancedEncryptionStandard encripter = parameters.getEncriptionStandard();
@@ -46,7 +46,7 @@ public class CRequestExecutorRegisterUserAnonymous extends CBackendRequestExecut
 		{
 			// error processing statement
 			// return statement error - status error
-			return new CBackendRequestExecutorResult(EBackendResponsStatusCode.INTERNAL_ERROR, "Unable to validate tokens!");
+			throw new CBackendRequestException(EBackendResponsStatusCode.INTERNAL_ERROR, "Unable to validate tokens!");
 		}
 		
 		final CBackendQueryValidateDevice validatorDevice = new CBackendQueryValidateDevice(parameters.getSqlDataSource(), deviceId);
@@ -54,7 +54,7 @@ public class CRequestExecutorRegisterUserAnonymous extends CBackendRequestExecut
 		
 		if (validatorResponse.getCode() != EBackendResponsStatusCode.STATUS_OK)
 		{
-			return new CBackendRequestExecutorResult(validatorResponse.getCode(), validatorResponse.getBody());
+			throw new CBackendRequestException(validatorResponse.getCode(), validatorResponse.getBody());
 		}
 		
 		Connection sqlConnection = null;
@@ -139,13 +139,13 @@ public class CRequestExecutorRegisterUserAnonymous extends CBackendRequestExecut
 			jsonResponse.put(CRequestKeys.mKeyClientUserToken, userToken);
 			jsonResponse.put(CRequestKeys.mKeyClientUserData, responseUserData);
 			sqlConnection.commit();
-			return new CBackendRequestExecutorResult(EBackendResponsStatusCode.STATUS_OK, jsonResponse.toString());
+			return toJSONObject(EBackendResponsStatusCode.STATUS_OK, jsonResponse.toString());
 		}
 		catch (Exception e)
 		{
 			// error processing statement
 			// return statement error - status error
-			return new CBackendRequestExecutorResult(EBackendResponsStatusCode.INTERNAL_ERROR, e.getMessage());
+			throw new CBackendRequestException(EBackendResponsStatusCode.INTERNAL_ERROR, e.getMessage());
 		}
 		finally
 		{			

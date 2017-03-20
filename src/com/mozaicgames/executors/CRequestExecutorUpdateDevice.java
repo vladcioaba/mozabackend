@@ -7,9 +7,9 @@ import java.sql.Timestamp;
 
 import org.json.JSONObject;
 
+import com.mozaicgames.core.CBackendRequestException;
 import com.mozaicgames.core.CBackendRequestExecutor;
 import com.mozaicgames.core.CBackendRequestExecutorParameters;
-import com.mozaicgames.core.CBackendRequestExecutorResult;
 import com.mozaicgames.core.EBackendResponsStatusCode;
 import com.mozaicgames.utils.CSqlBuilderUpdate;
 
@@ -22,7 +22,7 @@ public class CRequestExecutorUpdateDevice extends CBackendRequestExecutor
 	}
 	
 	@Override
-	public CBackendRequestExecutorResult execute(JSONObject jsonData, CBackendRequestExecutorParameters parameters) 
+	public JSONObject execute(JSONObject jsonData, CBackendRequestExecutorParameters parameters) throws CBackendRequestException
 	{	
 		Connection sqlConnection = null;
 		PreparedStatement preparedStatementUpdate = null;
@@ -80,13 +80,13 @@ public class CRequestExecutorUpdateDevice extends CBackendRequestExecutor
 			final String newDeviceToken = parameters.getEncriptionStandard().encrypt(Long.toString(parameters.getDeviceId()));
 			jsonResponse.put(CRequestKeys.mKeyClientDeviceToken, newDeviceToken);
 			sqlConnection.commit();			
-			return new CBackendRequestExecutorResult(EBackendResponsStatusCode.STATUS_OK, jsonResponse.toString());
+			return toJSONObject(EBackendResponsStatusCode.STATUS_OK, jsonResponse.toString());
 		}
 		catch (Exception e)
 		{
 			// error processing statement
 			// return statement error - status error
-			return new CBackendRequestExecutorResult(EBackendResponsStatusCode.INTERNAL_ERROR, e.getMessage());
+			throw new CBackendRequestException(EBackendResponsStatusCode.INTERNAL_ERROR, e.getMessage());
 		}
 		finally
 		{

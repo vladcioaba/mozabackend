@@ -82,13 +82,13 @@ public class CBackendRequestHandler implements HttpHandler
 		{
 			// bad input
 			// return database connection error - status retry
-			jsonResponseBody = CBackendRequestExecutorResult.toJSONObject(EBackendResponsStatusCode.INVALID_DATA, "Invalid input data! " + ex.getMessage());
+			jsonResponseBody = CBackendRequestExecutor.toJSONObject(EBackendResponsStatusCode.INVALID_DATA, "Invalid input data! " + ex.getMessage());
 			continueExecution = false;
 		}
 		
 		if (continueExecution && CBackendUtils.compareStringIntegerValue(mMinClientVersionAllowed, strClientCoreVersion) > 0)  
 		{
-			jsonResponseBody = CBackendRequestExecutorResult.toJSONObject(EBackendResponsStatusCode.CLIENT_OUT_OF_DATE, "Invalid application version!");
+			jsonResponseBody = CBackendRequestExecutor.toJSONObject(EBackendResponsStatusCode.CLIENT_OUT_OF_DATE, "Invalid application version!");
 			continueExecution = false;
 		}
 		
@@ -108,7 +108,7 @@ public class CBackendRequestHandler implements HttpHandler
 			    catch (JSONException e) 
 			    {
 			    	// object at index i is not a jsonobject.
-			    	jsonResponseBody = CBackendRequestExecutorResult.toJSONObject(EBackendResponsStatusCode.INVALID_DATA, "Invalid data format!");
+			    	jsonResponseBody = CBackendRequestExecutor.toJSONObject(EBackendResponsStatusCode.INVALID_DATA, "Invalid data format!");
 					break;
 				}
 	
@@ -120,7 +120,7 @@ public class CBackendRequestHandler implements HttpHandler
 				catch (JSONException e) 
 				{
 					// object at index i does not have a string name.
-					jsonResponseBody = CBackendRequestExecutorResult.toJSONObject(EBackendResponsStatusCode.INVALID_DATA, "Invalid data format!");
+					jsonResponseBody = CBackendRequestExecutor.toJSONObject(EBackendResponsStatusCode.INVALID_DATA, "Invalid data format!");
 					break;
 				} 
 				
@@ -132,7 +132,7 @@ public class CBackendRequestHandler implements HttpHandler
 				catch (JSONException e) 
 				{
 					// object at index i does not have a jsonobject data.
-					JSONObject jsonExecutorResponse = CBackendRequestExecutorResult.toJSONObject(EBackendResponsStatusCode.INVALID_DATA, "Invalid data format!");
+					JSONObject jsonExecutorResponse = CBackendRequestExecutor.toJSONObject(EBackendResponsStatusCode.INVALID_DATA, "Invalid data format!");
 					try 
 					{
 						jsonExecutorResponse.put(mKeyRequestName, strRequestName);
@@ -223,9 +223,10 @@ public class CBackendRequestHandler implements HttpHandler
 							   userId,
 							   deviceId);
 											
+					final JSONObject jsonResult = executor.execute(jsonRequestData, parameters);
 					try 
 					{
-						jsonExecutorResponse.put(mKeyResponseObject, executor.execute(jsonRequestData, parameters).toJSONObject());
+						jsonExecutorResponse.put(mKeyResponseObject, jsonResult);
 					}
 					catch (JSONException e) 
 					{
@@ -236,7 +237,7 @@ public class CBackendRequestHandler implements HttpHandler
 				{
 					try 
 					{
-						jsonExecutorResponse.put(mKeyResponseObject, CBackendRequestExecutorResult.toJSONObject(e.getStatus(), e.getBody()));
+						jsonExecutorResponse.put(mKeyResponseObject, CBackendRequestExecutor.toJSONObject(e.getStatus(), e.getBody()));
 					}
 					catch (JSONException e1) 
 					{
@@ -250,7 +251,7 @@ public class CBackendRequestHandler implements HttpHandler
 			
 			if (jsonResponseBody == null)
 			{
-				jsonResponseBody = CBackendRequestExecutorResult.toJSONObject(EBackendResponsStatusCode.STATUS_OK, jsonResponseArray);
+				jsonResponseBody = CBackendRequestExecutor.toJSONObject(EBackendResponsStatusCode.STATUS_OK, jsonResponseArray);
 			}
 		}
 		

@@ -9,9 +9,9 @@ import java.sql.Timestamp;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import com.mozaicgames.core.CBackendRequestException;
 import com.mozaicgames.core.CBackendRequestExecutor;
 import com.mozaicgames.core.CBackendRequestExecutorParameters;
-import com.mozaicgames.core.CBackendRequestExecutorResult;
 import com.mozaicgames.core.EBackendResponsStatusCode;
 import com.mozaicgames.utils.CBackendAdvancedEncryptionStandard;
 import com.mozaicgames.utils.CSqlBuilderInsert;
@@ -20,7 +20,7 @@ public class CRequestExecutorRegisterDevice extends CBackendRequestExecutor
 {
 	
 	@Override
-	public CBackendRequestExecutorResult execute(JSONObject jsonData, CBackendRequestExecutorParameters parameters) 
+	public JSONObject execute(JSONObject jsonData, CBackendRequestExecutorParameters parameters) throws CBackendRequestException
 	{	
 		String deviceModel = null;
 		String deviceOsVerrsion = null;
@@ -39,7 +39,7 @@ public class CRequestExecutorRegisterDevice extends CBackendRequestExecutor
 		{
 			// bad input
 			// return database connection error - status retry
-			return new CBackendRequestExecutorResult(EBackendResponsStatusCode.INVALID_DATA, "Invalid input data!");
+			throw new CBackendRequestException(EBackendResponsStatusCode.INVALID_DATA, "Invalid input data!");
 		}
 		
 		Connection sqlConnection = null;
@@ -86,13 +86,13 @@ public class CRequestExecutorRegisterDevice extends CBackendRequestExecutor
 			JSONObject jsonResponse = new JSONObject();
 			jsonResponse.put(CRequestKeys.mKeyClientDeviceToken, newUUID);
 			sqlConnection.commit();			
-			return new CBackendRequestExecutorResult(EBackendResponsStatusCode.STATUS_OK, jsonResponse.toString());
+			return toJSONObject(EBackendResponsStatusCode.STATUS_OK, jsonResponse.toString());
 		}
 		catch (Exception e)
 		{
 			// error processing statement
 			// return statement error - status error
-			return new CBackendRequestExecutorResult(EBackendResponsStatusCode.INTERNAL_ERROR, e.getMessage());
+			throw new CBackendRequestException(EBackendResponsStatusCode.INTERNAL_ERROR, e.getMessage());
 		}
 		finally
 		{

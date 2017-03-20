@@ -3,9 +3,9 @@ package com.mozaicgames.executors;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import com.mozaicgames.core.CBackendRequestException;
 import com.mozaicgames.core.CBackendRequestExecutor;
 import com.mozaicgames.core.CBackendRequestExecutorParameters;
-import com.mozaicgames.core.CBackendRequestExecutorResult;
 import com.mozaicgames.core.EBackendResponsStatusCode;
 import com.mozaicgames.utils.CBackendQueryResponse;
 import com.mozaicgames.utils.CBackendQueryValidateDevice;
@@ -15,7 +15,13 @@ import com.mozaicgames.utils.CBackendSessionManager;
 public class CRequestExecutorUpdateSession extends CBackendRequestExecutor
 {
 	@Override
-	public CBackendRequestExecutorResult execute(JSONObject jsonData, CBackendRequestExecutorParameters parameters) 
+	public boolean isSessionTokenValidationNeeded() 
+	{ 
+		return false; 
+	}
+	
+	@Override
+	public JSONObject execute(JSONObject jsonData, CBackendRequestExecutorParameters parameters) throws CBackendRequestException
 	{
 		String deviceToken = null;
 		try 
@@ -26,7 +32,7 @@ public class CRequestExecutorUpdateSession extends CBackendRequestExecutor
 		{
 			// bad input
 			// return database connection error - status retry
-			return new CBackendRequestExecutorResult(EBackendResponsStatusCode.INVALID_DATA, "Invalid input data!");
+			throw new CBackendRequestException(EBackendResponsStatusCode.INVALID_DATA, "Invalid input data!");
 		}
 		
 		long deviceId = 0;
@@ -41,7 +47,7 @@ public class CRequestExecutorUpdateSession extends CBackendRequestExecutor
 			CBackendSession lastKnownSession = sessionManager.getLastKnownSessionFor(deviceToken);
 			if (lastKnownSession == null)
 			{
-				return new CBackendRequestExecutorResult(EBackendResponsStatusCode.INVALID_TOKEN_SESSION_KEY, "Unknown session token!");
+				throw new CBackendRequestException(EBackendResponsStatusCode.INVALID_TOKEN_SESSION_KEY, "Unknown session token!");
 			}
 			
 			deviceId = lastKnownSession.getDeviceId();
@@ -59,7 +65,7 @@ public class CRequestExecutorUpdateSession extends CBackendRequestExecutor
 		final CBackendQueryResponse validatorResponse = validatorDevice.execute();		
 		if (validatorResponse.getCode() != EBackendResponsStatusCode.STATUS_OK)
 		{
-			return new CBackendRequestExecutorResult(validatorResponse.getCode(), validatorResponse.getBody());
+			throw new CBackendRequestException(validatorResponse.getCode(), validatorResponse.getBody());
 		}
 		
 		if (createNewSession)
@@ -73,7 +79,7 @@ public class CRequestExecutorUpdateSession extends CBackendRequestExecutor
 			{
 				JSONObject jsonResponse = new JSONObject();
 				jsonResponse.put(CRequestKeys.mKeyClientSessionToken, activeSession.getKey());
-				return new CBackendRequestExecutorResult(EBackendResponsStatusCode.STATUS_OK, jsonResponse.toString());
+				throw new CBackendRequestException(EBackendResponsStatusCode.STATUS_OK, jsonResponse.toString());
 			} 
 			catch (JSONException e)
 			{
@@ -83,6 +89,6 @@ public class CRequestExecutorUpdateSession extends CBackendRequestExecutor
 		
 		// error processing statement
 		// return statement error - status error
-		return new CBackendRequestExecutorResult(EBackendResponsStatusCode.INTERNAL_ERROR, "Unable to retrive active session!");
+		return toJSONObject(EBackendResponsStatusCode.INTERNAL_ERROR, "Unable to retrive active session!");
 	}
 }
