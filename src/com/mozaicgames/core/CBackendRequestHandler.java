@@ -170,6 +170,7 @@ public class CBackendRequestHandler implements HttpHandler
 					String deviceToken = null;
 					long deviceId = 0;
 					int userId = 0;
+					long sessionId = 0;
 					
 					if (executor.isSessionTokenValidationNeeded())
 					{
@@ -187,24 +188,21 @@ public class CBackendRequestHandler implements HttpHandler
 						CBackendSession activeSession = mSessionManager.getActiveSessionFor(deviceToken);
 						if (activeSession == null)
 						{
-							CBackendSession lastKnownSession = mSessionManager.getLastKnownSessionFor(deviceToken);
-							if (lastKnownSession == null)
+							activeSession = mSessionManager.getLastKnownSessionFor(deviceToken);
+							if (activeSession == null)
 							{
 								throw new CBackendRequestException(EBackendResponsStatusCode.INVALID_TOKEN_SESSION_KEY, "Unknown session token!");
-							}
-							
-							deviceId = lastKnownSession.getDeviceId();
-							userId = lastKnownSession.getUserId();
+							}							
 						}
-						else
+
+						if (activeSession.getIp().equals(remoteAddress) == false)
 						{
-							if (activeSession.getIp().equals(remoteAddress) == false)
-							{
-								throw new CBackendRequestException(EBackendResponsStatusCode.INVALID_TOKEN_SESSION_KEY, "Unknown session token!");
-							}
-							deviceId = activeSession.getDeviceId();
-							userId = activeSession.getUserId();
+							throw new CBackendRequestException(EBackendResponsStatusCode.INVALID_TOKEN_SESSION_KEY, "Unknown session token!");
 						}
+						
+						deviceId = activeSession.getDeviceId();
+						userId = activeSession.getUserId();
+						sessionId = activeSession.getId();
 						
 						final CBackendQueryValidateDevice validatorDevice = new CBackendQueryValidateDevice(mSqlDataSource, deviceId);
 						final CBackendQueryResponse validatorResponse = validatorDevice.execute();		
@@ -221,7 +219,8 @@ public class CBackendRequestHandler implements HttpHandler
 							   strClientCoreVersion,
 							   strClientAppVersion,
 							   userId,
-							   deviceId);
+							   deviceId,
+							   sessionId);
 											
 					final JSONObject jsonResult = executor.execute(jsonRequestData, parameters);
 					try 

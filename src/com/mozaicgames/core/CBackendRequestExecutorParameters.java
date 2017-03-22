@@ -16,6 +16,7 @@ public class CBackendRequestExecutorParameters
 	private final String								mClientAppVersion;
 	private final int									mUserId;
 	private final long									mDeviceId;
+	private final long									mSessionId;
 	
 	public CBackendRequestExecutorParameters(final String remoteAddress,
 											 final CBackendAdvancedEncryptionStandard encriptionStandard,
@@ -24,7 +25,8 @@ public class CBackendRequestExecutorParameters
 											 final String clientCoreVersion,
 											 final String clientAppVersion,
 											 final int userId,
-											 final long deviceId)
+											 final long deviceId,
+											 final long sessionId)
 	{
 		mRemoteAddress = remoteAddress;
 		mEncriptionStandard = encriptionStandard;
@@ -34,6 +36,7 @@ public class CBackendRequestExecutorParameters
 		mClientAppVersion = clientAppVersion;
 		mUserId = userId;
 		mDeviceId = deviceId;
+		mSessionId = sessionId;
 	}
 	
 	public String getRemoteAddress()
@@ -74,5 +77,10 @@ public class CBackendRequestExecutorParameters
 	public long getDeviceId()
 	{
 		return mDeviceId;
+	}
+	
+	public long getSessionId()
+	{
+		return mSessionId;
 	}
 }
