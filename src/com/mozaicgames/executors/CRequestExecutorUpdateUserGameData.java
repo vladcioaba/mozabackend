@@ -3,7 +3,6 @@ package com.mozaicgames.executors;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.sql.Timestamp;
 
 import org.json.JSONObject;
 
@@ -12,7 +11,6 @@ import com.mozaicgames.core.CBackendRequestExecutor;
 import com.mozaicgames.core.CBackendRequestExecutorParameters;
 import com.mozaicgames.core.EBackendResponsStatusCode;
 import com.mozaicgames.utils.CSqlBuilderUpdate;
-import com.sun.org.apache.xpath.internal.operations.Bool;
 
 public class CRequestExecutorUpdateUserGameData extends CBackendRequestExecutor
 {
@@ -34,7 +32,7 @@ public class CRequestExecutorUpdateUserGameData extends CBackendRequestExecutor
 			sqlConnection.setAutoCommit(false);
 			
 			CSqlBuilderUpdate sqlBuilderUpdate = new CSqlBuilderUpdate()
-					.table("usersgamedata")
+					.table("users_gamedata")
 					.where("user_id=" + parameters.getUserId());
 			
 			if (jsonData.has(CRequestKeys.mKeyUserDataMagnetOn))

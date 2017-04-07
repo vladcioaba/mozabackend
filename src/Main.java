@@ -6,6 +6,7 @@ import com.mozaicgames.core.CBackendServer;
 import com.mozaicgames.executors.CRequestExecutorCheckDevice;
 import com.mozaicgames.executors.CRequestExecutorCheckServer;
 import com.mozaicgames.executors.CRequestExecutorRegisterDevice;
+import com.mozaicgames.executors.CRequestExecutorRegisterGameResult;
 import com.mozaicgames.executors.CRequestExecutorRegisterSession;
 import com.mozaicgames.executors.CRequestExecutorRegisterUserAnonymous;
 import com.mozaicgames.executors.CRequestExecutorUpdateDevice;
@@ -86,7 +87,8 @@ public class Main
 			requestHandler = new CBackendRequestHandler(mDataSource, mSessionManager, minClientVersionAllowed, mEncripter);
 			requestHandler.addRequestExecuter("register_device", new CRequestExecutorRegisterDevice());
 			requestHandler.addRequestExecuter("register_user_anonymous", new CRequestExecutorRegisterUserAnonymous());
-			requestHandler.addRequestExecuter("register_session", new CRequestExecutorRegisterSession());			
+			requestHandler.addRequestExecuter("register_session", new CRequestExecutorRegisterSession());	
+			requestHandler.addRequestExecuter("register_game_result", new CRequestExecutorRegisterGameResult());	
 			requestHandler.addRequestExecuter("update_device", new CRequestExecutorUpdateDevice());
 			requestHandler.addRequestExecuter("update_session", new CRequestExecutorUpdateSession());
 			requestHandler.addRequestExecuter("update_usergame_data", new CRequestExecutorUpdateUserGameData());

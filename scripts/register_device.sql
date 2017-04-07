@@ -12,4 +12,4 @@ CREATE TABLE `devices` (
   `device_blocked` tinyint(4) NOT NULL DEFAULT '0',
   PRIMARY KEY (`device_id`),
   UNIQUE KEY `device_id_UNIQUE` (`device_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=latin1
+) ENGINE=InnoDB DEFAULT CHARSET=latin1

@@ -34,7 +34,7 @@ public class CBackendQuerryGetUserGameData
 					.column("data_music_on")
 					.column("data_sfx_on")
 					.column("data_credits")
-					.from("usersgamedata")
+					.from("users_gamedata")
 					.where("user_id=" + userId);
 
 			// find the session in the database first
