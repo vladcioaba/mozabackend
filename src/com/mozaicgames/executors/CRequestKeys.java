@@ -20,8 +20,9 @@ public class CRequestKeys
 	public static final String mKeyDeviceClientAppVersion   = "client_app_version";
 	
 	public static final String mKeyGameDataVector			= "games";
-	public static final String mKeyGameType					= "game_type";
+	public static final String mKeyGameType					= "game_game_type";
 	public static final String mKeyGameSeed					= "game_seed";
+	public static final String mKeyGameSeedSource			= "game_seed_source";
 	public static final String mKeyGameDuration				= "game_duration";
 	public static final String mKeyGameFinishResult			= "game_complete_result";
 	public static final String mKeyGameActionsUsedNum		= "game_actions_used_num";

@@ -49,6 +49,7 @@ public class CRequestExecutorRegisterGameResult extends CBackendRequestExecutor
 				final Timestamp creationTime = new Timestamp(System.currentTimeMillis());
 				final int gameType = jsonGameData.getInt(CRequestKeys.mKeyGameType);
 				final String gameSeed = jsonGameData.getString(CRequestKeys.mKeyGameSeed);
+				final int gameSeedSource = jsonGameData.getInt(CRequestKeys.mKeyGameSeedSource);
 				final int gameDuration = jsonGameData.getInt(CRequestKeys.mKeyGameDuration);
 				final int gameReuslt = jsonGameData.getInt(CRequestKeys.mKeyGameFinishResult);
 				final int numUsedActions = jsonGameData.getInt(CRequestKeys.mKeyGameActionsUsedNum);
@@ -62,6 +63,7 @@ public class CRequestExecutorRegisterGameResult extends CBackendRequestExecutor
 						.value("game_results_creation_date", creationTime.toString())
 						.value("game_results_type", Integer.toString(gameType))
 						.value("game_results_seed", gameSeed)
+						.value("game_results_seed_source", Integer.toString(gameSeedSource))
 						.value("game_results_duration", Integer.toString(gameDuration))
 						.value("game_results_complete_result", Integer.toString(gameReuslt))
 						.value("game_results_used_actions_num", Integer.toString(numUsedActions))
