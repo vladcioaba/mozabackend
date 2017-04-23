@@ -106,17 +106,23 @@ public class CRequestExecutorRegisterUserAnonymous extends CBackendRequestExecut
 			final String defaultValueLeftHandedOn = "0";
 			final String defaultValueMusicOn = "1";
 			final String defaultValueSfxOn = "1";
-			final String defaultValueCredits = "100";
+			final String defaultValueCreditsNum = "100";
+			final String defaultValueJockersNum = "5";
+			final String defaultValueLivesNum = "5";
+			final String defaultValueLivesMaxNum = "5";
 			
 			
 			final CSqlBuilderInsert sqlBuilderInsertNewUserData = new CSqlBuilderInsert()
-					.into("users_gamedata")
-					.value("user_id", Integer.toString(newUserId))
-					.value("data_magnet_on", defaultValueMagnetOn)
-					.value("data_left_handed_on", defaultValueLeftHandedOn)
-					.value("data_music_on", defaultValueMusicOn)
-					.value("data_sfx_on", defaultValueSfxOn)
-					.value("data_credits", defaultValueCredits);
+					.into(CDatabaseKeys.mKeyTableUsersdata)
+					.value(CDatabaseKeys.mKeyTableUsersdataUserId, Integer.toString(newUserId))
+					.value(CDatabaseKeys.mKeyTableUsersdataDataMagnetOn, defaultValueMagnetOn)
+					.value(CDatabaseKeys.mKeyTableUsersdataDatLeftHandedOn, defaultValueLeftHandedOn)
+					.value(CDatabaseKeys.mKeyTableUsersdataDataMusicOn, defaultValueMusicOn)
+					.value(CDatabaseKeys.mKeyTableUsersdataDataSfxOn, defaultValueSfxOn)
+					.value(CDatabaseKeys.mKeyTableUsersdataDataCreditsNum, defaultValueCreditsNum)
+					.value(CDatabaseKeys.mKeyTableUsersdataDataJockersNum, defaultValueJockersNum)
+					.value(CDatabaseKeys.mKeyTableUsersdataDataLivesNum, defaultValueLivesNum)
+					.value(CDatabaseKeys.mKeyTableUsersdataDataLivesMaxNum, defaultValueLivesMaxNum);
 			
 			final String strQueryInsertUserData = sqlBuilderInsertNewUserData.toString();
 			preparedStatementInsertUserData = sqlConnection.prepareStatement(strQueryInsertUserData, PreparedStatement.RETURN_GENERATED_KEYS);
@@ -128,11 +134,14 @@ public class CRequestExecutorRegisterUserAnonymous extends CBackendRequestExecut
 
 			JSONObject responseUserData = new JSONObject();
 
-			responseUserData.put(CRequestKeys.mKeyUserDataMagnetOn, defaultValueMagnetOn);
-			responseUserData.put(CRequestKeys.mKeyUserDataLeftHandedOn, defaultValueLeftHandedOn);
-			responseUserData.put(CRequestKeys.mKeyUserDataMusicOn, defaultValueMusicOn);
-			responseUserData.put(CRequestKeys.mKeyUserDataSfxOn, defaultValueSfxOn);
-			responseUserData.put(CRequestKeys.mKeyUserDataCredits, defaultValueCredits);
+			responseUserData.put(CRequestKeys.mKeyUserSettingsDataMagnetOn, defaultValueMagnetOn);
+			responseUserData.put(CRequestKeys.mKeyUserSettingsDataLeftHandedOn, defaultValueLeftHandedOn);
+			responseUserData.put(CRequestKeys.mKeyUserSettingsDataMusicOn, defaultValueMusicOn);
+			responseUserData.put(CRequestKeys.mKeyUserSettingsDataSfxOn, defaultValueSfxOn);
+			responseUserData.put(CRequestKeys.mKeyUserGameDataCreditsNum, defaultValueCreditsNum);
+			responseUserData.put(CRequestKeys.mKeyUserGameDataJockersNum, defaultValueJockersNum);
+			responseUserData.put(CRequestKeys.mKeyUserGameDataLivesNum, defaultValueLivesNum);
+			responseUserData.put(CRequestKeys.mKeyUserGameDataLivesMaxNum, defaultValueLivesMaxNum);
 			
 			String userToken = encripter.encrypt(String.valueOf(newUserId));			
 			JSONObject jsonResponse = new JSONObject();

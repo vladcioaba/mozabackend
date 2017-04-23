@@ -13,7 +13,10 @@ public abstract class CBackendRequestExecutor
 		
 	}
 	
-	public boolean isSessionTokenValidationNeeded() { return false; }
+	public boolean isSessionTokenValidationNeeded() 
+	{ 
+		return false; 
+		}
 	
 	abstract public JSONObject execute(JSONObject jsonData, CBackendRequestExecutorParameters parameters) throws CBackendRequestException;
 	

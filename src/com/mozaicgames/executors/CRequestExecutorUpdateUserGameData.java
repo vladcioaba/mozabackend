@@ -32,37 +32,49 @@ public class CRequestExecutorUpdateUserGameData extends CBackendRequestExecutor
 			sqlConnection.setAutoCommit(false);
 			
 			CSqlBuilderUpdate sqlBuilderUpdate = new CSqlBuilderUpdate()
-					.table("users_gamedata")
-					.where("user_id=" + parameters.getUserId());
+					.table(CDatabaseKeys.mKeyTableUsersdata)
+					.where(CDatabaseKeys.mKeyTableUsersdataUserId + "=" + parameters.getUserId());
 			
-			if (jsonData.has(CRequestKeys.mKeyUserDataMagnetOn))
+			if (jsonData.has(CRequestKeys.mKeyUserSettingsDataMagnetOn))
 			{
-				final int deviceMagnetOn = jsonData.getBoolean(CRequestKeys.mKeyUserDataMagnetOn) ? 1 : 0;
-				sqlBuilderUpdate.set("data_magnet_on", Integer.toString(deviceMagnetOn));
+				final int deviceMagnetOn = jsonData.getBoolean(CRequestKeys.mKeyUserSettingsDataMagnetOn) ? 1 : 0;
+				sqlBuilderUpdate.set(CDatabaseKeys.mKeyTableUsersdataDataMagnetOn, Integer.toString(deviceMagnetOn));
 			}
 			
-			if (jsonData.has(CRequestKeys.mKeyUserDataLeftHandedOn))
+			if (jsonData.has(CRequestKeys.mKeyUserSettingsDataLeftHandedOn))
 			{
-				final int deviceLeftHandedOn = jsonData.getBoolean(CRequestKeys.mKeyUserDataLeftHandedOn) ? 1 : 0;
-				sqlBuilderUpdate.set("data_left_handed_on", Integer.toString(deviceLeftHandedOn));
+				final int deviceLeftHandedOn = jsonData.getBoolean(CRequestKeys.mKeyUserSettingsDataLeftHandedOn) ? 1 : 0;
+				sqlBuilderUpdate.set(CDatabaseKeys.mKeyTableUsersdataDatLeftHandedOn, Integer.toString(deviceLeftHandedOn));
 			}
 			
-			if (jsonData.has(CRequestKeys.mKeyUserDataMusicOn))
+			if (jsonData.has(CRequestKeys.mKeyUserSettingsDataMusicOn))
 			{
-				final int deviceMusicOn = jsonData.getBoolean(CRequestKeys.mKeyUserDataMusicOn) ? 1 : 0;
-				sqlBuilderUpdate.set("data_music_on", Integer.toString(deviceMusicOn));
+				final int deviceMusicOn = jsonData.getBoolean(CRequestKeys.mKeyUserSettingsDataMusicOn) ? 1 : 0;
+				sqlBuilderUpdate.set(CDatabaseKeys.mKeyTableUsersdataDataMusicOn, Integer.toString(deviceMusicOn));
 			}
 			
-			if (jsonData.has(CRequestKeys.mKeyUserDataSfxOn))
+			if (jsonData.has(CRequestKeys.mKeyUserSettingsDataSfxOn))
 			{
-				final int deviceSfxOn = jsonData.getBoolean(CRequestKeys.mKeyUserDataSfxOn) ? 1 : 0;
-				sqlBuilderUpdate.set("data_sfx_on", Integer.toString(deviceSfxOn));
+				final int deviceSfxOn = jsonData.getBoolean(CRequestKeys.mKeyUserSettingsDataSfxOn) ? 1 : 0;
+				sqlBuilderUpdate.set(CDatabaseKeys.mKeyTableUsersdataDataSfxOn, Integer.toString(deviceSfxOn));
 			}
 			
-			if (jsonData.has(CRequestKeys.mKeyUserDataCredits))
+			if (jsonData.has(CRequestKeys.mKeyUserGameDataCreditsNum))
 			{
-				final int deviceCredits = jsonData.getInt(CRequestKeys.mKeyUserDataCredits);
-				sqlBuilderUpdate.set("data_credits", Integer.toString(deviceCredits));
+				final int deviceCreditsNum = jsonData.getInt(CRequestKeys.mKeyUserGameDataCreditsNum);
+				sqlBuilderUpdate.set(CDatabaseKeys.mKeyTableUsersdataDataCreditsNum, Integer.toString(deviceCreditsNum));
+			}
+			
+			if (jsonData.has(CRequestKeys.mKeyUserGameDataJockersNum))
+			{
+				final int deviceJockersNum = jsonData.getInt(CRequestKeys.mKeyUserGameDataJockersNum);
+				sqlBuilderUpdate.set(CDatabaseKeys.mKeyTableUsersdataDataJockersNum, Integer.toString(deviceJockersNum));
+			}
+			
+			if (jsonData.has(CRequestKeys.mKeyUserGameDataLivesNum))
+			{
+				final int deviceLivesNum = jsonData.getInt(CRequestKeys.mKeyUserGameDataLivesNum);
+				sqlBuilderUpdate.set(CDatabaseKeys.mKeyTableUsersdataDataLivesNum, Integer.toString(deviceLivesNum));
 			}
 			
 			final String strQueryUpdate = sqlBuilderUpdate.toString(); 

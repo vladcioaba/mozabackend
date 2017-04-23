@@ -52,23 +52,25 @@ public class CRequestExecutorRegisterGameResult extends CBackendRequestExecutor
 				final int gameSeedSource = jsonGameData.getInt(CRequestKeys.mKeyGameSeedSource);
 				final int gameDuration = jsonGameData.getInt(CRequestKeys.mKeyGameDuration);
 				final int gameReuslt = jsonGameData.getInt(CRequestKeys.mKeyGameFinishResult);
+				final int numDeckRefreshed = jsonGameData.getInt(CRequestKeys.mKeyGameDeckRefreshNum);
 				final int numUsedActions = jsonGameData.getInt(CRequestKeys.mKeyGameActionsUsedNum);
 				final int numUsedHints = jsonGameData.getInt(CRequestKeys.mKeyGameHintsUsedNum);
 				final int numUsedJockers = jsonGameData.getInt(CRequestKeys.mKeyGameJockersUsedNum);
 				
 				CSqlBuilderInsert sqlBuilderInsert = new CSqlBuilderInsert()
 						.into("game_results")
-						.value("game_results_session_id", Long.toString(parameters.getSessionId()))
-						.value("game_results_user_id", Integer.toString(parameters.getUserId()))
-						.value("game_results_creation_date", creationTime.toString())
-						.value("game_results_type", Integer.toString(gameType))
-						.value("game_results_seed", gameSeed)
-						.value("game_results_seed_source", Integer.toString(gameSeedSource))
-						.value("game_results_duration", Integer.toString(gameDuration))
-						.value("game_results_complete_result", Integer.toString(gameReuslt))
-						.value("game_results_used_actions_num", Integer.toString(numUsedActions))
-						.value("game_results_used_hints_num", Integer.toString(numUsedHints))
-						.value("game_results_used_jockers_num", Integer.toString(numUsedJockers));
+						.value("session_id", Long.toString(parameters.getSessionId()))
+						.value("user_id", Integer.toString(parameters.getUserId()))
+						.value("creation_date", creationTime.toString())
+						.value("type", Integer.toString(gameType))
+						.value("seed", gameSeed)
+						.value("seed_source", Integer.toString(gameSeedSource))
+						.value("duration", Integer.toString(gameDuration))
+						.value("complete_result", Integer.toString(gameReuslt))
+						.value("deck_refresh_num", Integer.toString(numDeckRefreshed))
+						.value("used_actions_num", Integer.toString(numUsedActions))
+						.value("used_hints_num", Integer.toString(numUsedHints))
+						.value("used_jockers_num", Integer.toString(numUsedJockers));
 				
 				final String strQuerInsert = sqlBuilderInsert.toString(); 
 				preparedStatementInsert = sqlConnection.prepareStatement(strQuerInsert, PreparedStatement.RETURN_GENERATED_KEYS);

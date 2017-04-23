@@ -11,6 +11,7 @@ import org.json.JSONObject;
 
 import com.mozaicgames.core.CBackendRequestException;
 import com.mozaicgames.core.EBackendResponsStatusCode;
+import com.mozaicgames.executors.CDatabaseKeys;
 import com.mozaicgames.executors.CRequestKeys;
 
 public class CBackendQuerryGetUserGameData 
@@ -29,13 +30,15 @@ public class CBackendQuerryGetUserGameData
 			sqlConnection.setAutoCommit(false);
 
 			final CSqlBuilderSelect sqlBuilderSelect = new CSqlBuilderSelect()
-					.column("data_magnet_on")
-					.column("data_left_handed_on")
-					.column("data_music_on")
-					.column("data_sfx_on")
-					.column("data_credits")
-					.from("users_gamedata")
-					.where("user_id=" + userId);
+					.from(CDatabaseKeys.mKeyTableUsersdata)
+					.column(CDatabaseKeys.mKeyTableUsersdataDataMagnetOn)
+					.column(CDatabaseKeys.mKeyTableUsersdataDatLeftHandedOn)
+					.column(CDatabaseKeys.mKeyTableUsersdataDataMusicOn)
+					.column(CDatabaseKeys.mKeyTableUsersdataDataSfxOn)
+					.column(CDatabaseKeys.mKeyTableUsersdataDataCreditsNum)
+					.column(CDatabaseKeys.mKeyTableUsersdataDataJockersNum)
+					.column(CDatabaseKeys.mKeyTableUsersdataDataLivesNum)
+					.where(CDatabaseKeys.mKeyTableUsersdataUserId + "=" + userId);
 
 			// find the session in the database first
 			final String strQuerySelect = sqlBuilderSelect.toString();
@@ -48,15 +51,19 @@ public class CBackendQuerryGetUserGameData
 				final short dataLeftHandedOn = response.getShort(2);
 				final short dataMusicOn = response.getShort(3);
 				final short dataSfxOn = response.getShort(4);
-				final int dataCredits = response.getInt(5);
+				final int dataCreditsNum = response.getInt(5);
+				final int dataJockersNum = response.getInt(6);
+				final int dataLivesNum = response.getInt(7);
 				
 				JSONObject responseUserData = new JSONObject();
 				
-				responseUserData.put(CRequestKeys.mKeyUserDataMagnetOn, dataMagnetOn);
-				responseUserData.put(CRequestKeys.mKeyUserDataLeftHandedOn, dataLeftHandedOn);
-				responseUserData.put(CRequestKeys.mKeyUserDataMusicOn, dataMusicOn);
-				responseUserData.put(CRequestKeys.mKeyUserDataSfxOn, dataSfxOn);
-				responseUserData.put(CRequestKeys.mKeyUserDataCredits, dataCredits);
+				responseUserData.put(CRequestKeys.mKeyUserSettingsDataMagnetOn, dataMagnetOn);
+				responseUserData.put(CRequestKeys.mKeyUserSettingsDataLeftHandedOn, dataLeftHandedOn);
+				responseUserData.put(CRequestKeys.mKeyUserSettingsDataMusicOn, dataMusicOn);
+				responseUserData.put(CRequestKeys.mKeyUserSettingsDataSfxOn, dataSfxOn);
+				responseUserData.put(CRequestKeys.mKeyUserGameDataCreditsNum, dataCreditsNum);
+				responseUserData.put(CRequestKeys.mKeyUserGameDataJockersNum, dataJockersNum);
+				responseUserData.put(CRequestKeys.mKeyUserGameDataLivesNum, dataLivesNum);
 				
 				return responseUserData;
 			}

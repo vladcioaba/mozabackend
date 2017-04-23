@@ -81,7 +81,6 @@ public class CRequestExecutorUpdateSession extends CBackendRequestExecutor
 				JSONObject jsonResponse = new JSONObject();
 				jsonResponse.put(CRequestKeys.mKeyClientSessionToken, activeSession.getKey());
 				jsonResponse.put(CRequestKeys.mKeyClientUserData, CBackendQuerryGetUserGameData.getUserGameData(userId, parameters.getSqlDataSource()));
-				
 				return toJSONObject(EBackendResponsStatusCode.STATUS_OK, jsonResponse);
 			} 
 			catch (JSONException e)
