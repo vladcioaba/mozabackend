@@ -33,6 +33,12 @@ public class CSqlBuilderUpdate extends CSqlBuilder
         return this;
     }
 
+    public CSqlBuilderUpdate update(String name, String value, String sign) 
+    {
+    	mColumns.add(name + "=" + name + sign + "'" + value + "'");
+        return this;
+    }
+
     public CSqlBuilderUpdate where(String expr) 
     {
         mWheres.add(expr);

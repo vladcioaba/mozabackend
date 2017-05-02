@@ -56,21 +56,21 @@ public class CRequestExecutorRegisterGameResult extends CBackendRequestExecutor
 				final int numUsedActions = jsonGameData.getInt(CRequestKeys.mKeyGameActionsUsedNum);
 				final int numUsedHints = jsonGameData.getInt(CRequestKeys.mKeyGameHintsUsedNum);
 				final int numUsedJockers = jsonGameData.getInt(CRequestKeys.mKeyGameJockersUsedNum);
-				
+			
 				CSqlBuilderInsert sqlBuilderInsert = new CSqlBuilderInsert()
-						.into("game_results")
-						.value("session_id", Long.toString(parameters.getSessionId()))
-						.value("user_id", Integer.toString(parameters.getUserId()))
-						.value("creation_date", creationTime.toString())
-						.value("type", Integer.toString(gameType))
-						.value("seed", gameSeed)
-						.value("seed_source", Integer.toString(gameSeedSource))
-						.value("duration", Integer.toString(gameDuration))
-						.value("complete_result", Integer.toString(gameReuslt))
-						.value("deck_refresh_num", Integer.toString(numDeckRefreshed))
-						.value("used_actions_num", Integer.toString(numUsedActions))
-						.value("used_hints_num", Integer.toString(numUsedHints))
-						.value("used_jockers_num", Integer.toString(numUsedJockers));
+						.into(CDatabaseKeys.mKeyTableGameResultsTableName)
+						.value(CDatabaseKeys.mKeyTableGameResultsSessionId, Long.toString(parameters.getSessionId()))
+						.value(CDatabaseKeys.mKeyTableGameResultsUserId, Integer.toString(parameters.getUserId()))
+						.value(CDatabaseKeys.mKeyTableGameResultsCreationDate, creationTime.toString())
+						.value(CDatabaseKeys.mKeyTableGameResultsType, Integer.toString(gameType))
+						.value(CDatabaseKeys.mKeyTableGameResultsSeed, gameSeed)
+						.value(CDatabaseKeys.mKeyTableGameResultsSeedSource, Integer.toString(gameSeedSource))
+						.value(CDatabaseKeys.mKeyTableGameResultsDuration, Integer.toString(gameDuration))
+						.value(CDatabaseKeys.mKeyTableGameResultsCompleteResult, Integer.toString(gameReuslt))
+						.value(CDatabaseKeys.mKeyTableGameResultsDeckRefreshNum, Integer.toString(numDeckRefreshed))
+						.value(CDatabaseKeys.mKeyTableGameResultsUsedActionsNum, Integer.toString(numUsedActions))
+						.value(CDatabaseKeys.mKeyTableGameResultsUsedHintsNum, Integer.toString(numUsedHints))
+						.value(CDatabaseKeys.mKeyTableGameResultsUsedJockersNum, Integer.toString(numUsedJockers));
 				
 				final String strQuerInsert = sqlBuilderInsert.toString(); 
 				preparedStatementInsert = sqlConnection.prepareStatement(strQuerInsert, PreparedStatement.RETURN_GENERATED_KEYS);

@@ -68,8 +68,8 @@ public class CRequestExecutorRegisterUserAnonymous extends CBackendRequestExecut
 			sqlConnection.setAutoCommit(false);
 		
 			final CSqlBuilderInsert sqlBuilderInsertNewUser = new CSqlBuilderInsert()
-					.into("users")
-					.value("user_creation_date", new Timestamp(System.currentTimeMillis()).toString());
+					.into(CDatabaseKeys.mKeyTableUsersTableName)
+					.value(CDatabaseKeys.mKeyTableUsersUserCreationDate, new Timestamp(System.currentTimeMillis()).toString());
 			
 			final String strQueryInsertUser = sqlBuilderInsertNewUser.toString();
 			preparedStatementInsertUser = sqlConnection.prepareStatement(strQueryInsertUser, PreparedStatement.RETURN_GENERATED_KEYS);

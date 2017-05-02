@@ -27,7 +27,10 @@ public abstract class CBackendRequestExecutor
 		try 
 		{
 			jsonObjectReturn.put(mKeyResponseStatus, code.getValue());
-			jsonObjectReturn.put(mKeyResponseBody, body);
+			if (body != null)
+			{
+				jsonObjectReturn.put(mKeyResponseBody, body);
+			}
 		}
 		catch (JSONException ex)
 		{

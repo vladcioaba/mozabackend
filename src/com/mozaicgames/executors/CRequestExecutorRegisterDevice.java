@@ -50,18 +50,17 @@ public class CRequestExecutorRegisterDevice extends CBackendRequestExecutor
 			sqlConnection = parameters.getSqlDataSource().getConnection();
 			sqlConnection.setAutoCommit(false);
 			final String remoteAddress = parameters.getRemoteAddress();
-			
 			final Timestamp creationTime = new Timestamp(System.currentTimeMillis());
 			final CSqlBuilderInsert sqlBuilderInsert = new CSqlBuilderInsert()
-					.into("devices")
-					.value("device_model", deviceModel)
-					.value("device_os_version", deviceOsVerrsion)
-					.value("device_platform", devicePlatform)
-					.value("device_core_version", deviceClientCoreVersion)
-					.value("device_app_version", deviceClientAppVersion)
-					.value("device_first_ip", remoteAddress)
-					.value("device_creation_time", creationTime.toString())
-					.value("device_update_time", creationTime.toString());
+					.into(CDatabaseKeys.mKeyTableDevicesTableName)
+					.value(CDatabaseKeys.mKeyTableDevicesModel, deviceModel)
+					.value(CDatabaseKeys.mKeyTableDevicesOsVersion, deviceOsVerrsion)
+					.value(CDatabaseKeys.mKeyTableDevicesPlatform, devicePlatform)
+					.value(CDatabaseKeys.mKeyTableDevicesClientCoreVersion, deviceClientCoreVersion)
+					.value(CDatabaseKeys.mKeyTableDevicesClientAppVersion, deviceClientAppVersion)
+					.value(CDatabaseKeys.mKeyTableDevicesFirstIp, remoteAddress)
+					.value(CDatabaseKeys.mKeyTableDevicesCreationDate, creationTime.toString())
+					.value(CDatabaseKeys.mKeyTableDevicesUpdateDate, creationTime.toString());
 			
 			final String strQueryInsert = sqlBuilderInsert.toString();
 			preparedStatementInsert = sqlConnection.prepareStatement(strQueryInsert, PreparedStatement.RETURN_GENERATED_KEYS);

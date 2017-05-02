@@ -16,10 +16,11 @@ public class CRequestKeys
 	public static final String mKeyUserGameDataJockersNum			= "userdata_jockers_num";
 	public static final String mKeyUserGameDataLivesNum				= "userdata_lives_num";
 	public static final String mKeyUserGameDataLivesMaxNum		    = "userdata_lives_max_num";
-	
+
 	public static final String mKeyDeviceModel						= "device_model";
 	public static final String mKeyDeviceOsVersion 					= "device_os_version";
 	public static final String mKeyDevicePlatform					= "device_platform";
+	public static final String mKeyDeviceUsageTime					= "device_usage_time";
 	public static final String mKeyDeviceClientCoreVersion  		= "client_core_version";
 	public static final String mKeyDeviceClientAppVersion   		= "client_app_version";
 	

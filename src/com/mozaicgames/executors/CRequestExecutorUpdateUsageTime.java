@@ -13,7 +13,7 @@ import com.mozaicgames.core.CBackendRequestExecutorParameters;
 import com.mozaicgames.core.EBackendResponsStatusCode;
 import com.mozaicgames.utils.CSqlBuilderUpdate;
 
-public class CRequestExecutorUpdateDevice extends CBackendRequestExecutor
+public class CRequestExecutorUpdateUsageTime extends CBackendRequestExecutor
 {
 	@Override
 	public boolean isSessionTokenValidationNeeded() 
@@ -29,49 +29,24 @@ public class CRequestExecutorUpdateDevice extends CBackendRequestExecutor
 		
 		try 
 		{
+			final int deviceUsageTime = jsonData.getInt(CRequestKeys.mKeyDeviceUsageTime);
+
 			sqlConnection = parameters.getSqlDataSource().getConnection();
 			sqlConnection.setAutoCommit(false);
+
+//			CSqlBuilderSelect sqlBuilderSelect = new CSqlBuilderSelect()
+//				.from(CDatabaseKeys.mKeyTableDevicesTableName)
+//				.column(CDatabaseKeys.mKeyTableDevicesUsageTime)
+//				.where("");
+//			
+//			final String strQuerySelect = sqlBuilderSelect.toString();
+//			sqlConnection.pre
 			
 			CSqlBuilderUpdate sqlBuilderUpdate = new CSqlBuilderUpdate()
 					.table(CDatabaseKeys.mKeyTableDevicesTableName)
 					.set(CDatabaseKeys.mKeyTableDevicesUpdateDate, new Timestamp(System.currentTimeMillis()).toString())
+					.update(CDatabaseKeys.mKeyTableDevicesUsageTime, Integer.toString(deviceUsageTime), "+")
 					.where(CDatabaseKeys.mKeyTableDevicesDeviceId + "=" + parameters.getDeviceId());
-			
-			if (jsonData.has(CRequestKeys.mKeyDeviceModel))
-			{
-				final String deviceModel = jsonData.getString(CRequestKeys.mKeyDeviceModel);
-				sqlBuilderUpdate.set(CDatabaseKeys.mKeyTableDevicesModel, deviceModel);
-			}
-			
-			if (jsonData.has(CRequestKeys.mKeyDeviceOsVersion))
-			{
-				final String deviceOsVerrsion = jsonData.getString(CRequestKeys.mKeyDeviceOsVersion);
-				sqlBuilderUpdate.set(CDatabaseKeys.mKeyTableDevicesOsVersion, deviceOsVerrsion);
-			}
-			
-			if (jsonData.has(CRequestKeys.mKeyDevicePlatform))
-			{
-				final String devicePlatform = jsonData.getString(CRequestKeys.mKeyDevicePlatform);
-				sqlBuilderUpdate.set(CDatabaseKeys.mKeyTableDevicesPlatform, devicePlatform);
-			}
-			
-			if (jsonData.has(CRequestKeys.mKeyDeviceUsageTime))
-			{
-				final int deviceUsageTime = jsonData.getInt(CRequestKeys.mKeyDeviceUsageTime);
-				sqlBuilderUpdate.set(CDatabaseKeys.mKeyTableDevicesUsageTime, Integer.toString(deviceUsageTime));
-			}
-			
-			if (jsonData.has(CRequestKeys.mKeyDeviceClientAppVersion))
-			{
-				final String deviceAppVersion = jsonData.getString(CRequestKeys.mKeyDeviceClientAppVersion);
-				sqlBuilderUpdate.set(CDatabaseKeys.mKeyTableDevicesClientAppVersion, deviceAppVersion);
-			}
-			
-			if (jsonData.has(CRequestKeys.mKeyDeviceClientCoreVersion))
-			{
-				final String deviceCoreVersion = jsonData.getString(CRequestKeys.mKeyDeviceClientCoreVersion);
-				sqlBuilderUpdate.set(CDatabaseKeys.mKeyTableDevicesClientCoreVersion, deviceCoreVersion);
-			}
 			
 			final String strQueryUpdate = sqlBuilderUpdate.toString(); 
 			preparedStatementUpdate = sqlConnection.prepareStatement(strQueryUpdate, PreparedStatement.RETURN_GENERATED_KEYS);
@@ -82,11 +57,8 @@ public class CRequestExecutorUpdateDevice extends CBackendRequestExecutor
 				throw new Exception("Nothing updated in database!");
 			}		
 			
-			JSONObject jsonResponse = new JSONObject();
-			final String newDeviceToken = parameters.getEncriptionStandard().encrypt(Long.toString(parameters.getDeviceId()));
-			jsonResponse.put(CRequestKeys.mKeyClientDeviceToken, newDeviceToken);
-			sqlConnection.commit();			
-			return toJSONObject(EBackendResponsStatusCode.STATUS_OK, jsonResponse);
+			sqlConnection.commit();
+			return toJSONObject(EBackendResponsStatusCode.STATUS_OK, null);
 		}
 		catch (Exception e)
 		{

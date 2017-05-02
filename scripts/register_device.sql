@@ -7,8 +7,8 @@ CREATE TABLE `devices` (
   `device_core_version` varchar(45) NOT NULL,
   `device_app_version` varchar(45) NOT NULL,
   `device_first_ip` varchar(45) NOT NULL, 
-  `device_creation_time` timestamp NOT NULL DEFAULT '1970-01-01 00:00:01',
-  `device_update_time` timestamp NOT NULL DEFAULT '1970-01-01 00:00:01',
+  `device_creation_date` timestamp NOT NULL DEFAULT '1970-01-01 00:00:01',
+  `device_update_date` timestamp NOT NULL DEFAULT '1970-01-01 00:00:01',
   `device_blocked` tinyint(4) NOT NULL DEFAULT '0',
   PRIMARY KEY (`device_id`),
   UNIQUE KEY `device_id_UNIQUE` (`device_id`)
