@@ -171,6 +171,7 @@ public class CBackendRequestHandler implements HttpHandler
 					long deviceId = 0;
 					int userId = 0;
 					long sessionId = 0;
+					String devicePlatform = "";
 					
 					if (executor.isSessionTokenValidationNeeded())
 					{
@@ -203,6 +204,7 @@ public class CBackendRequestHandler implements HttpHandler
 						deviceId = activeSession.getDeviceId();
 						userId = activeSession.getUserId();
 						sessionId = activeSession.getId();
+						devicePlatform = activeSession.getPlatform();
 						
 						final CBackendQueryValidateDevice validatorDevice = new CBackendQueryValidateDevice(mSqlDataSource, deviceId);
 						final CBackendQueryResponse validatorResponse = validatorDevice.execute();		
@@ -212,15 +214,17 @@ public class CBackendRequestHandler implements HttpHandler
 						}
 					}
 					
-					final CBackendRequestExecutorParameters parameters = new CBackendRequestExecutorParameters(remoteAddress,
-							   mEncripter,
-							   mSqlDataSource,
-						       mSessionManager,
-							   strClientCoreVersion,
-							   strClientAppVersion,
-							   userId,
-							   deviceId,
-							   sessionId);
+					final CBackendRequestExecutorParameters parameters = new CBackendRequestExecutorParameters(
+							remoteAddress,
+							mEncripter,
+							mSqlDataSource,
+						    mSessionManager,
+							strClientCoreVersion,
+							strClientAppVersion,
+							userId,
+							deviceId,
+							sessionId,
+							devicePlatform);
 											
 					final JSONObject jsonResult = executor.execute(jsonRequestData, parameters);
 					try 

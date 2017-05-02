@@ -5,17 +5,18 @@ public class CRequestKeys
 	public static final String mKeyClientDeviceToken				= "client_device_token";
 	public static final String mKeyClientUserToken					= "client_user_token";
 	public static final String mKeyClientSessionToken 				= "client_session_token";
-	public static final String mKeyClientUserData					= "client_user_data";
+	public static final String mKeyClientUserSettingsData			= "client_user_settings_data";
+	public static final String mKeyClientUserGameData				= "client_user_game_data";
 	
-	public static final String mKeyUserSettingsDataMagnetOn			= "userdata_magnet_on";
-	public static final String mKeyUserSettingsDataLeftHandedOn		= "userdata_lefthanded_on";
-	public static final String mKeyUserSettingsDataMusicOn			= "userdata_music_on";
-	public static final String mKeyUserSettingsDataSfxOn			= "userdata_sfx_on";
+	public static final String mKeyUserSettingsMagnetOn				= "settings_magnet_on";
+	public static final String mKeyUserSettingsLeftHandedOn			= "settings_lefthanded_on";
+	public static final String mKeyUserSettingsMusicOn				= "settings_music_on";
+	public static final String mKeyUserSettingsSfxOn				= "settings_sfx_on";
 	
-	public static final String mKeyUserGameDataCreditsNum			= "userdata_credits_num";
-	public static final String mKeyUserGameDataJockersNum			= "userdata_jockers_num";
-	public static final String mKeyUserGameDataLivesNum				= "userdata_lives_num";
-	public static final String mKeyUserGameDataLivesMaxNum		    = "userdata_lives_max_num";
+	public static final String mKeyUserGameDataCreditsNum			= "gamedata_credits_num";
+	public static final String mKeyUserGameDataJockersNum			= "gamedata_jockers_num";
+	public static final String mKeyUserGameDataLivesNum				= "gamedata_lives_num";
+	public static final String mKeyUserGameDataLivesMaxNum		    = "gamedata_lives_max_num";
 
 	public static final String mKeyDeviceModel						= "device_model";
 	public static final String mKeyDeviceOsVersion 					= "device_os_version";

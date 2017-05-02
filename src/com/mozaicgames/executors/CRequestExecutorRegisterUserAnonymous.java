@@ -57,9 +57,12 @@ public class CRequestExecutorRegisterUserAnonymous extends CBackendRequestExecut
 			throw new CBackendRequestException(validatorResponse.getCode(), validatorResponse.getBody());
 		}
 		
+		final String devicePlatform = validatorResponse.getBody();
+		
 		Connection sqlConnection = null;
 		PreparedStatement preparedStatementInsertUser = null;
 		PreparedStatement preparedStatementUpdateDevice = null;
+		PreparedStatement preparedStatementInsertUserSettings = null;
 		PreparedStatement preparedStatementInsertUserData = null;
 		
 		try 
@@ -89,9 +92,9 @@ public class CRequestExecutorRegisterUserAnonymous extends CBackendRequestExecut
 			
 			// update user id in device
 			final CSqlBuilderUpdate sqlBuilderUpdate = new CSqlBuilderUpdate()
-					.table("devices")
-					.set("device_user_id", Integer.toString(newUserId))
-					.where("device_id=" + deviceId);
+					.table(CDatabaseKeys.mKeyTableDevicesTableName)
+					.set(CDatabaseKeys.mKeyTableDevicesUserId, Integer.toString(newUserId))
+					.where(CDatabaseKeys.mKeyTableDevicesDeviceId + "=" + deviceId);
 			
 			final String strQueryUpdate = sqlBuilderUpdate.toString();
 			preparedStatementUpdateDevice =  sqlConnection.prepareStatement(strQueryUpdate);
@@ -106,25 +109,38 @@ public class CRequestExecutorRegisterUserAnonymous extends CBackendRequestExecut
 			final String defaultValueLeftHandedOn = "0";
 			final String defaultValueMusicOn = "1";
 			final String defaultValueSfxOn = "1";
+			
+			final CSqlBuilderInsert sqlBuilderInsertNewUserSettings = new CSqlBuilderInsert()
+					.into(CDatabaseKeys.mKeyTableUsersSettingsTableName)
+					.value(CDatabaseKeys.mKeyTableUsersSettingsUserId, Integer.toString(newUserId))
+					.value(CDatabaseKeys.mKeyTableUsersSettingsMagnetOn, defaultValueMagnetOn)
+					.value(CDatabaseKeys.mKeyTableUsersSettingsLeftHandedOn, defaultValueLeftHandedOn)
+					.value(CDatabaseKeys.mKeyTableUsersSettingsMusicOn, defaultValueMusicOn)
+					.value(CDatabaseKeys.mKeyTableUsersSettingsSfxOn, defaultValueSfxOn);
+			
 			final String defaultValueCreditsNum = "100";
 			final String defaultValueJockersNum = "5";
 			final String defaultValueLivesNum = "5";
 			final String defaultValueLivesMaxNum = "5";
 			
+			final String strQueryInsertUserSettings = sqlBuilderInsertNewUserSettings.toString();
+			preparedStatementInsertUserSettings = sqlConnection.prepareStatement(strQueryInsertUserSettings, PreparedStatement.RETURN_GENERATED_KEYS);
+			affectedRows = preparedStatementInsertUserSettings.executeUpdate();
+			if (affectedRows == 0)
+			{
+				throw new Exception("Nothing updated in database!");
+			}	
 			
-			final CSqlBuilderInsert sqlBuilderInsertNewUserData = new CSqlBuilderInsert()
-					.into(CDatabaseKeys.mKeyTableUsersdata)
-					.value(CDatabaseKeys.mKeyTableUsersdataUserId, Integer.toString(newUserId))
-					.value(CDatabaseKeys.mKeyTableUsersdataDataMagnetOn, defaultValueMagnetOn)
-					.value(CDatabaseKeys.mKeyTableUsersdataDatLeftHandedOn, defaultValueLeftHandedOn)
-					.value(CDatabaseKeys.mKeyTableUsersdataDataMusicOn, defaultValueMusicOn)
-					.value(CDatabaseKeys.mKeyTableUsersdataDataSfxOn, defaultValueSfxOn)
-					.value(CDatabaseKeys.mKeyTableUsersdataDataCreditsNum, defaultValueCreditsNum)
-					.value(CDatabaseKeys.mKeyTableUsersdataDataJockersNum, defaultValueJockersNum)
-					.value(CDatabaseKeys.mKeyTableUsersdataDataLivesNum, defaultValueLivesNum)
-					.value(CDatabaseKeys.mKeyTableUsersdataDataLivesMaxNum, defaultValueLivesMaxNum);
+			final CSqlBuilderInsert sqlBuilderInsertNewUserGameData = new CSqlBuilderInsert()
+					.into(CDatabaseKeys.mKeyTableUsersDataTableName)
+					.value(CDatabaseKeys.mKeyTableUsersDataUserId, Integer.toString(newUserId))
+					.value(CDatabaseKeys.mKeyTableUsersDataDevicePlatform, devicePlatform)
+					.value(CDatabaseKeys.mKeyTableUsersDataCreditsNum, defaultValueCreditsNum)
+					.value(CDatabaseKeys.mKeyTableUsersDataJockersNum, defaultValueJockersNum)
+					.value(CDatabaseKeys.mKeyTableUsersDataLivesNum, defaultValueLivesNum)
+					.value(CDatabaseKeys.mKeyTableUsersDataLivesMaxNum, defaultValueLivesMaxNum);
 			
-			final String strQueryInsertUserData = sqlBuilderInsertNewUserData.toString();
+			final String strQueryInsertUserData = sqlBuilderInsertNewUserGameData.toString();
 			preparedStatementInsertUserData = sqlConnection.prepareStatement(strQueryInsertUserData, PreparedStatement.RETURN_GENERATED_KEYS);
 			affectedRows = preparedStatementInsertUserData.executeUpdate();
 			if (affectedRows == 0)
@@ -132,12 +148,13 @@ public class CRequestExecutorRegisterUserAnonymous extends CBackendRequestExecut
 				throw new Exception("Nothing updated in database!");
 			}			
 
+			JSONObject responseUserSettings = new JSONObject();
+			responseUserSettings.put(CRequestKeys.mKeyUserSettingsMagnetOn, defaultValueMagnetOn);
+			responseUserSettings.put(CRequestKeys.mKeyUserSettingsLeftHandedOn, defaultValueLeftHandedOn);
+			responseUserSettings.put(CRequestKeys.mKeyUserSettingsMusicOn, defaultValueMusicOn);
+			responseUserSettings.put(CRequestKeys.mKeyUserSettingsSfxOn, defaultValueSfxOn);
+			
 			JSONObject responseUserData = new JSONObject();
-
-			responseUserData.put(CRequestKeys.mKeyUserSettingsDataMagnetOn, defaultValueMagnetOn);
-			responseUserData.put(CRequestKeys.mKeyUserSettingsDataLeftHandedOn, defaultValueLeftHandedOn);
-			responseUserData.put(CRequestKeys.mKeyUserSettingsDataMusicOn, defaultValueMusicOn);
-			responseUserData.put(CRequestKeys.mKeyUserSettingsDataSfxOn, defaultValueSfxOn);
 			responseUserData.put(CRequestKeys.mKeyUserGameDataCreditsNum, defaultValueCreditsNum);
 			responseUserData.put(CRequestKeys.mKeyUserGameDataJockersNum, defaultValueJockersNum);
 			responseUserData.put(CRequestKeys.mKeyUserGameDataLivesNum, defaultValueLivesNum);
@@ -146,7 +163,8 @@ public class CRequestExecutorRegisterUserAnonymous extends CBackendRequestExecut
 			String userToken = encripter.encrypt(String.valueOf(newUserId));			
 			JSONObject jsonResponse = new JSONObject();
 			jsonResponse.put(CRequestKeys.mKeyClientUserToken, userToken);
-			jsonResponse.put(CRequestKeys.mKeyClientUserData, responseUserData);
+			jsonResponse.put(CRequestKeys.mKeyClientUserSettingsData, responseUserSettings);
+			jsonResponse.put(CRequestKeys.mKeyClientUserGameData, responseUserData);
 			sqlConnection.commit();
 			return toJSONObject(EBackendResponsStatusCode.STATUS_OK, jsonResponse);
 		}
@@ -184,12 +202,25 @@ public class CRequestExecutorRegisterUserAnonymous extends CBackendRequestExecut
 				}
 			}
 			
-			if (preparedStatementInsertUser != null)
+			if (preparedStatementInsertUserData != null)
 			{
 				try  
 				{ 
-					preparedStatementInsertUser.close();
-					preparedStatementInsertUser = null;
+					preparedStatementInsertUserData.close();
+					preparedStatementInsertUserData = null;
+				}  
+				catch (SQLException e)  
+				{ 
+					System.err.println(e.getMessage()); 
+				}
+			}
+			
+			if (preparedStatementInsertUserSettings != null)
+			{
+				try  
+				{ 
+					preparedStatementInsertUserSettings.close();
+					preparedStatementInsertUserSettings = null;
 				}  
 				catch (SQLException e)  
 				{ 

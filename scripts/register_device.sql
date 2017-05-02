@@ -1,9 +1,10 @@
 CREATE TABLE `devices` (
   `device_id` bigint(20) NOT NULL AUTO_INCREMENT,
-  `device_user_id` int(11) DEFAULT '0',
+  `user_id` int(11) DEFAULT '0',
   `device_model` varchar(45) NOT NULL,
   `device_os_version` varchar(45) NOT NULL,
   `device_platform` varchar(45) NOT NULL,
+  `device_usage_time` int(11) NOT NULL DEFAULT '0',
   `device_core_version` varchar(45) NOT NULL,
   `device_app_version` varchar(45) NOT NULL,
   `device_first_ip` varchar(45) NOT NULL, 

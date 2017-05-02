@@ -11,6 +11,8 @@ import java.util.concurrent.TimeUnit;
 
 import javax.sql.DataSource;
 
+import com.mozaicgames.executors.CDatabaseKeys;
+
 public class CBackendSessionManager 
 {
 	private final DataSource mSqlDataSource;
@@ -77,13 +79,15 @@ public class CBackendSessionManager
 				sqlConnection = mSqlDataSource.getConnection();
 				sqlConnection.setAutoCommit(false);
 
-				CSqlBuilderSelect sqlBuilderSelect = new CSqlBuilderSelect().column("user_id")
-						.column("device_id")
-						.column("session_expire_date")
-						.column("session_ip")
-						.from("sessions")
-						.where("session_id=" + sessionId)
-						.orderBy("session_id")
+				CSqlBuilderSelect sqlBuilderSelect = new CSqlBuilderSelect()
+						.column(CDatabaseKeys.mKeyTableSessionUserId)
+						.column(CDatabaseKeys.mKeyTableSessionDeviceId)
+						.column(CDatabaseKeys.mKeyTableSessionExpireData)
+						.column(CDatabaseKeys.mKeyTableSessionIp)
+						.column(CDatabaseKeys.mKeyTableSessionPlatform)
+						.from(CDatabaseKeys.mKeyTableSessionTableName)
+						.where(CDatabaseKeys.mKeyTableSessionUserId + "=" + sessionId)
+						.orderBy(CDatabaseKeys.mKeyTableSessionUserId)
 						.orderType("desc").limit(1);
 
 				// find the session in the database first
@@ -98,9 +102,9 @@ public class CBackendSessionManager
 					final long timestampExpired = response.getTimestamp(3).getTime();
 					final long timestampNow = System.currentTimeMillis();
 					final String sessionIp = response.getString(4);
+					final String sessionPlatform = response.getString(5);
 
-					CBackendSession newSession = new CBackendSession(sessionId, userId, deviceId, sessionKey,
-							timestampExpired, timestampNow, sessionIp);
+					CBackendSession newSession = new CBackendSession(sessionId, userId, deviceId, sessionKey, timestampExpired, timestampNow, sessionIp, sessionPlatform);
 					return newSession;
 				}
 			} 
@@ -197,13 +201,14 @@ public class CBackendSessionManager
 			sqlConnection.setAutoCommit(false);
 
 			CSqlBuilder sqlBuilderSelect = new CSqlBuilderSelect()
-					.column("session_id")
-					.column("session_expire_date")
-					.column("session_ip")
-					.from("sessions")
-					.where("device_id=" + deviceId)
-					.where("user_id=" + userId)
-					.orderBy("session_id")
+					.column(CDatabaseKeys.mKeyTableSessionUserId)
+					.column(CDatabaseKeys.mKeyTableSessionExpireData)
+					.column(CDatabaseKeys.mKeyTableSessionIp)
+					.column(CDatabaseKeys.mKeyTableSessionPlatform)
+					.from(CDatabaseKeys.mKeyTableSessionTableName)
+					.where(CDatabaseKeys.mKeyTableSessionDeviceId + "=" + deviceId)
+					.where(CDatabaseKeys.mKeyTableSessionUserId + "=" + userId)
+					.orderBy(CDatabaseKeys.mKeyTableSessionUserId)
 					.orderType("desc").limit(1);
 
 			// find the session in the database first
@@ -217,12 +222,12 @@ public class CBackendSessionManager
 				long timestampNow = System.currentTimeMillis();
 				final long timestampExpired = response.getTimestamp(2).getTime();
 				final String sessionIp = response.getString(3);
+				final String sessionPlatform = response.getString(4);
 				final String sessionKey = mEncripter.encrypt(String.valueOf(sessionId));
 
 				if (timestampNow < timestampExpired) 
 				{
-					CBackendSession newSession = new CBackendSession(sessionId, userId, deviceId, sessionKey,
-							timestampExpired, timestampNow, sessionIp);
+					CBackendSession newSession = new CBackendSession(sessionId, userId, deviceId, sessionKey, timestampExpired, timestampNow, sessionIp, sessionPlatform);
 					mActiveSessions.put(sessionKey, newSession);
 					return newSession;
 				}
@@ -262,7 +267,7 @@ public class CBackendSessionManager
 		return null;
 	}
 
-	public synchronized CBackendSession createSession(long deviceId, int userId, String remoteAddress) 
+	public synchronized CBackendSession createSession(long deviceId, int userId, String remoteAddress, String sessionPlatform) 
 	{
 		Connection sqlConnection = null;
 		PreparedStatement preparedStatementInsert = null;
@@ -284,12 +289,13 @@ public class CBackendSessionManager
 
 			// create session key
 			final CSqlBuilderInsert sqlBuilderInsert = new CSqlBuilderInsert()
-					.into("sessions")
-					.value("user_id", Integer.toString(userId))
-					.value("device_id", Long.toString(deviceId))
-					.value("session_creation_date", new Timestamp(milisCurrent).toString())
-					.value("session_expire_date", new Timestamp(milisLastOfTheDay).toString())
-					.value("session_ip", remoteAddress);			
+					.into(CDatabaseKeys.mKeyTableSessionTableName)
+					.value(CDatabaseKeys.mKeyTableSessionUserId, Integer.toString(userId))
+					.value(CDatabaseKeys.mKeyTableSessionDeviceId, Long.toString(deviceId))
+					.value(CDatabaseKeys.mKeyTableSessionCreationData, new Timestamp(milisCurrent).toString())
+					.value(CDatabaseKeys.mKeyTableSessionExpireData, new Timestamp(milisLastOfTheDay).toString())
+					.value(CDatabaseKeys.mKeyTableSessionIp, remoteAddress)
+					.value(CDatabaseKeys.mKeyTableSessionPlatform, sessionPlatform);
 			
 			final String strQueryInsert = sqlBuilderInsert.toString();
 			preparedStatementInsert = sqlConnection.prepareStatement(strQueryInsert, PreparedStatement.RETURN_GENERATED_KEYS);
@@ -307,8 +313,7 @@ public class CBackendSessionManager
 			}
 
 			final String newSessionKey = mEncripter.encrypt(String.valueOf(sessionId));
-			CBackendSession newSession = new CBackendSession(sessionId, userId, deviceId, newSessionKey, milisCurrent,
-					milisLastOfTheDay, remoteAddress);
+			CBackendSession newSession = new CBackendSession(sessionId, userId, deviceId, newSessionKey, milisCurrent, milisLastOfTheDay, remoteAddress, sessionPlatform);
 			mActiveSessions.put(newSessionKey, newSession);
 
 			sqlConnection.commit();

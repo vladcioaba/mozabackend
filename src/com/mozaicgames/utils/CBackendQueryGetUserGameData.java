@@ -14,14 +14,14 @@ import com.mozaicgames.core.EBackendResponsStatusCode;
 import com.mozaicgames.executors.CDatabaseKeys;
 import com.mozaicgames.executors.CRequestKeys;
 
-public class CBackendQuerryGetUserGameData 
+public class CBackendQueryGetUserGameData 
 {
-	private CBackendQuerryGetUserGameData() 
+	private CBackendQueryGetUserGameData() 
 	{
 		
 	}
 	
-	static public JSONObject getUserGameData(int userId, DataSource dataSource) throws CBackendRequestException
+	static public JSONObject getUserGameData(int userId, String devicePlatform, DataSource dataSource) throws CBackendRequestException
 	{
 		Connection sqlConnection = null;
 		PreparedStatement preparedStatementSelect = null;
@@ -30,15 +30,11 @@ public class CBackendQuerryGetUserGameData
 			sqlConnection.setAutoCommit(false);
 
 			final CSqlBuilderSelect sqlBuilderSelect = new CSqlBuilderSelect()
-					.from(CDatabaseKeys.mKeyTableUsersdata)
-					.column(CDatabaseKeys.mKeyTableUsersdataDataMagnetOn)
-					.column(CDatabaseKeys.mKeyTableUsersdataDatLeftHandedOn)
-					.column(CDatabaseKeys.mKeyTableUsersdataDataMusicOn)
-					.column(CDatabaseKeys.mKeyTableUsersdataDataSfxOn)
-					.column(CDatabaseKeys.mKeyTableUsersdataDataCreditsNum)
-					.column(CDatabaseKeys.mKeyTableUsersdataDataJockersNum)
-					.column(CDatabaseKeys.mKeyTableUsersdataDataLivesNum)
-					.where(CDatabaseKeys.mKeyTableUsersdataUserId + "=" + userId);
+					.from(CDatabaseKeys.mKeyTableUsersDataTableName)
+					.column(CDatabaseKeys.mKeyTableUsersDataCreditsNum)
+					.column(CDatabaseKeys.mKeyTableUsersDataJockersNum)
+					.column(CDatabaseKeys.mKeyTableUsersDataLivesNum)
+					.where(CDatabaseKeys.mKeyTableUsersDataUserId + "='" + userId + "' and " + CDatabaseKeys.mKeyTableUsersDataDevicePlatform + "='" + devicePlatform + "'");
 
 			// find the session in the database first
 			final String strQuerySelect = sqlBuilderSelect.toString();
@@ -47,20 +43,12 @@ public class CBackendQuerryGetUserGameData
 			ResultSet response = preparedStatementSelect.executeQuery();
 			if (response != null && response.next()) 
 			{
-				final short dataMagnetOn = response.getShort(1);
-				final short dataLeftHandedOn = response.getShort(2);
-				final short dataMusicOn = response.getShort(3);
-				final short dataSfxOn = response.getShort(4);
-				final int dataCreditsNum = response.getInt(5);
-				final int dataJockersNum = response.getInt(6);
-				final int dataLivesNum = response.getInt(7);
+				final int dataCreditsNum = response.getInt(1);
+				final int dataJockersNum = response.getInt(2);
+				final int dataLivesNum = response.getInt(3);
 				
 				JSONObject responseUserData = new JSONObject();
 				
-				responseUserData.put(CRequestKeys.mKeyUserSettingsDataMagnetOn, dataMagnetOn);
-				responseUserData.put(CRequestKeys.mKeyUserSettingsDataLeftHandedOn, dataLeftHandedOn);
-				responseUserData.put(CRequestKeys.mKeyUserSettingsDataMusicOn, dataMusicOn);
-				responseUserData.put(CRequestKeys.mKeyUserSettingsDataSfxOn, dataSfxOn);
 				responseUserData.put(CRequestKeys.mKeyUserGameDataCreditsNum, dataCreditsNum);
 				responseUserData.put(CRequestKeys.mKeyUserGameDataJockersNum, dataJockersNum);
 				responseUserData.put(CRequestKeys.mKeyUserGameDataLivesNum, dataLivesNum);

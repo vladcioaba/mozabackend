@@ -8,6 +8,7 @@ import java.sql.SQLException;
 import javax.sql.DataSource;
 
 import com.mozaicgames.core.EBackendResponsStatusCode;
+import com.mozaicgames.executors.CDatabaseKeys;
 
 public class CBackendQueryValidateDevice implements IBackendQueryExecuter {
 	
@@ -23,7 +24,7 @@ public class CBackendQueryValidateDevice implements IBackendQueryExecuter {
 	public CBackendQueryResponse execute()
 	{
 		EBackendResponsStatusCode intResponseCode = EBackendResponsStatusCode.STATUS_OK;
-		String strResponseBody = "Device is ok!";
+		String strResponseBody = "";
 		
 		PreparedStatement preparedStatementSelectDevice = null;
 		Connection sqlConnection = null;
@@ -33,9 +34,10 @@ public class CBackendQueryValidateDevice implements IBackendQueryExecuter {
 			sqlConnection = mDataSource.getConnection();
 			
 			final CSqlBuilderSelect sqlBuilderSelect = new CSqlBuilderSelect()
-					.column("device_blocked")
-					.from("devices")
-					.where("device_id=" + mDeviceId);		
+					.column(CDatabaseKeys.mKeyTableDevicesDeviceBlocked)
+					.column(CDatabaseKeys.mKeyTableDevicesPlatform)
+					.from(CDatabaseKeys.mKeyTableDevicesTableName)
+					.where(CDatabaseKeys.mKeyTableDevicesDeviceId + "=" + mDeviceId);		
 			
 			final String strQuerySelectDevice = sqlBuilderSelect.toString();
 			preparedStatementSelectDevice = sqlConnection.prepareStatement(strQuerySelectDevice);
@@ -54,6 +56,8 @@ public class CBackendQueryValidateDevice implements IBackendQueryExecuter {
 					intResponseCode = EBackendResponsStatusCode.CLIENT_REJECTED;
 					strResponseBody ="Client is rejected!";
 				}
+				
+				strResponseBody = resultSetDeviceQuery.getString(2);
 			}
 			preparedStatementSelectDevice.close();
 			preparedStatementSelectDevice = null;

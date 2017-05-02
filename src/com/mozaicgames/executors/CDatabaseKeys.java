@@ -5,19 +5,25 @@ public class CDatabaseKeys
 	public static final String mKeyTableUsersTableName				= "users";
 	public static final String mKeyTableUsersUserCreationDate		= "user_creation_date";	
 	
-	public static final String mKeyTableUsersdata					= "users_data";
-	public static final String mKeyTableUsersdataUserDataId     	= "user_data_id";	
-	public static final String mKeyTableUsersdataUserId     		= "user_id";	
-	public static final String mKeyTableUsersdataDataMagnetOn		= "data_magnet_on";	
-	public static final String mKeyTableUsersdataDatLeftHandedOn	= "data_left_handed_on";
-	public static final String mKeyTableUsersdataDataMusicOn		= "data_music_on";
-	public static final String mKeyTableUsersdataDataSfxOn			= "data_sfx_on";
-	public static final String mKeyTableUsersdataDataCreditsNum		= "data_credits_num";
-	public static final String mKeyTableUsersdataDataJockersNum		= "data_jockers_num";
-	public static final String mKeyTableUsersdataDataLivesNum		= "data_lives_num";
-	public static final String mKeyTableUsersdataDataLivesMaxNum	= "data_lives_max_num";
+	public static final String mKeyTableUsersSettingsTableName		= "users_settings";
+	public static final String mKeyTableUsersSettingsId 			= "settings_id";	
+	public static final String mKeyTableUsersSettingsUserId     	= "user_id";	
+	public static final String mKeyTableUsersSettingsMagnetOn		= "settings_magnet_on";	
+	public static final String mKeyTableUsersSettingsLeftHandedOn	= "settings_left_handed_on";
+	public static final String mKeyTableUsersSettingsMusicOn		= "settings_music_on";
+	public static final String mKeyTableUsersSettingsSfxOn			= "settings_sfx_on";
+	
+	public static final String mKeyTableUsersDataTableName		    = "users_data";
+	public static final String mKeyTableUsersDataId					= "data_id";
+	public static final String mKeyTableUsersDataUserId				= "user_id";
+	public static final String mKeyTableUsersDataDevicePlatform		= "device_platform";
+	public static final String mKeyTableUsersDataCreditsNum			= "data_credits_num";
+	public static final String mKeyTableUsersDataJockersNum			= "data_jockers_num";
+	public static final String mKeyTableUsersDataLivesNum			= "data_lives_num";
+	public static final String mKeyTableUsersDataLivesMaxNum		= "data_lives_max_num";
 	
 	public static final String mKeyTableDevicesTableName			= "devices";
+	public static final String mKeyTableDevicesUserId				= "user_id";
 	public static final String mKeyTableDevicesModel				= "device_model";
 	public static final String mKeyTableDevicesOsVersion 			= "device_os_version";
 	public static final String mKeyTableDevicesPlatform				= "device_platform";
@@ -28,6 +34,7 @@ public class CDatabaseKeys
 	public static final String mKeyTableDevicesCreationDate		   	= "device_creation_date";
 	public static final String mKeyTableDevicesUpdateDate			= "device_update_date";
 	public static final String mKeyTableDevicesDeviceId				= "device_id";
+	public static final String mKeyTableDevicesDeviceBlocked		= "device_blocked";
 	
 	public static final String mKeyTableGameResultsTableName 		= "game_results";
 	public static final String mKeyTableGameResultsSessionId 		= "session_id";
@@ -42,4 +49,12 @@ public class CDatabaseKeys
 	public static final String mKeyTableGameResultsUsedActionsNum	= "used_actions_num";
 	public static final String mKeyTableGameResultsUsedHintsNum		= "used_hints_num";
 	public static final String mKeyTableGameResultsUsedJockersNum	= "used_jockers_num";
+	
+	public static final String mKeyTableSessionTableName			= "sessions";
+	public static final String mKeyTableSessionUserId				= "user_id";
+	public static final String mKeyTableSessionDeviceId				= "device_id";
+	public static final String mKeyTableSessionCreationData			= "session_creation_date";
+	public static final String mKeyTableSessionExpireData			= "session_expire_date";
+	public static final String mKeyTableSessionIp					= "session_ip";
+	public static final String mKeyTableSessionPlatform				= "session_platform";
 }

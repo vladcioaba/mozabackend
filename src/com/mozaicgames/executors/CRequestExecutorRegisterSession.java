@@ -8,7 +8,8 @@ import com.mozaicgames.core.CBackendRequestExecutor;
 import com.mozaicgames.core.CBackendRequestExecutorParameters;
 import com.mozaicgames.core.EBackendResponsStatusCode;
 import com.mozaicgames.utils.CBackendAdvancedEncryptionStandard;
-import com.mozaicgames.utils.CBackendQuerryGetUserGameData;
+import com.mozaicgames.utils.CBackendQueryGetUserGameData;
+import com.mozaicgames.utils.CBackendQueryGetUserSettingsData;
 import com.mozaicgames.utils.CBackendQueryResponse;
 import com.mozaicgames.utils.CBackendQueryValidateDevice;
 import com.mozaicgames.utils.CBackendSession;
@@ -55,11 +56,12 @@ public class CRequestExecutorRegisterSession extends CBackendRequestExecutor
 			throw new CBackendRequestException(validatorResponse.getCode(), validatorResponse.getBody());
 		}
 	
+		final String devicePlatform = validatorResponse.getBody();
 		CBackendSession activeSession = parameters.getSessionManager().getSessionFor(deviceId, userId);
 		if (activeSession == null || activeSession.getIp().equals(parameters.getRemoteAddress()) == false) 
 		{
 			final String remoteAddress = parameters.getRemoteAddress();
-			activeSession = parameters.getSessionManager().createSession(deviceId, userId, remoteAddress);
+			activeSession = parameters.getSessionManager().createSession(deviceId, userId, remoteAddress, devicePlatform);
 		}
 		
 		if (activeSession != null)
@@ -68,7 +70,8 @@ public class CRequestExecutorRegisterSession extends CBackendRequestExecutor
 			{
 				JSONObject jsonResponse = new JSONObject();
 				jsonResponse.put(CRequestKeys.mKeyClientSessionToken, activeSession.getKey());
-				jsonResponse.put(CRequestKeys.mKeyClientUserData, CBackendQuerryGetUserGameData.getUserGameData(userId, parameters.getSqlDataSource()));
+				jsonResponse.put(CRequestKeys.mKeyClientUserSettingsData, CBackendQueryGetUserSettingsData.getUserGameData(userId, parameters.getSqlDataSource()));
+				jsonResponse.put(CRequestKeys.mKeyClientUserGameData, CBackendQueryGetUserGameData.getUserGameData(userId, activeSession.getPlatform(), parameters.getSqlDataSource()));
 				return toJSONObject(EBackendResponsStatusCode.STATUS_OK, jsonResponse);
 			} 
 			catch (JSONException e)
