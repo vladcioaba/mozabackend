@@ -204,14 +204,14 @@ public class CBackendRequestHandler implements HttpHandler
 						deviceId = activeSession.getDeviceId();
 						userId = activeSession.getUserId();
 						sessionId = activeSession.getId();
-						devicePlatform = activeSession.getPlatform();
-						
 						final CBackendQueryValidateDevice validatorDevice = new CBackendQueryValidateDevice(mSqlDataSource, deviceId);
 						final CBackendQueryResponse validatorResponse = validatorDevice.execute();		
 						if (validatorResponse.getCode() != EBackendResponsStatusCode.STATUS_OK)
 						{
 							throw new CBackendRequestException(validatorResponse.getCode(), validatorResponse.getBody());
 						}
+						
+						devicePlatform = validatorResponse.getBody();
 					}
 					
 					final CBackendRequestExecutorParameters parameters = new CBackendRequestExecutorParameters(

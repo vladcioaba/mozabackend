@@ -6,6 +6,7 @@ public class CRequestKeys
 	public static final String mKeyClientUserToken					= "client_user_token";
 	public static final String mKeyClientSessionToken 				= "client_session_token";
 	public static final String mKeyClientUserSettingsData			= "client_user_settings_data";
+	public static final String mKeyClientUserWalletData				= "client_user_wallet_data";
 	public static final String mKeyClientUserGameData				= "client_user_game_data";
 	
 	public static final String mKeyUserSettingsMagnetOn				= "settings_magnet_on";
@@ -13,11 +14,15 @@ public class CRequestKeys
 	public static final String mKeyUserSettingsMusicOn				= "settings_music_on";
 	public static final String mKeyUserSettingsSfxOn				= "settings_sfx_on";
 	
-	public static final String mKeyUserGameDataCreditsNum			= "gamedata_credits_num";
-	public static final String mKeyUserGameDataJockersNum			= "gamedata_jockers_num";
-	public static final String mKeyUserGameDataLivesNum				= "gamedata_lives_num";
-	public static final String mKeyUserGameDataLivesMaxNum		    = "gamedata_lives_max_num";
+	public static final String mKeyUserWalletDataCreditsNum			= "walletdata_credits_num";
+	public static final String mKeyUserWalletDataJockersNum			= "walletdata_jockers_num";
+	public static final String mKeyUserWalletDataLivesNum			= "walletdata_lives_num";
+	public static final String mKeyUserWalletDataLivesMaxNum		= "walletdata_lives_max_num";
 
+	public static final String mKeyUserUserDataLevel				= "userdata_level";
+	public static final String mKeyUserUserDataXp					= "userdata_xp";
+	public static final String mKeyUserUserDataTrophies				= "userdata_trophies";
+	
 	public static final String mKeyDeviceModel						= "device_model";
 	public static final String mKeyDeviceOsVersion 					= "device_os_version";
 	public static final String mKeyDevicePlatform					= "device_platform";
@@ -35,4 +40,5 @@ public class CRequestKeys
 	public static final String mKeyGameActionsUsedNum				= "game_actions_used_num";
 	public static final String mKeyGameHintsUsedNum					= "game_hints_used_num";
 	public static final String mKeyGameJockersUsedNum				= "game_jockers_used_num";
+	public static final String mKeyGameGainedXp						= "game_gained_xp";
 }

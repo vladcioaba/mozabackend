@@ -14,14 +14,14 @@ import com.mozaicgames.core.EBackendResponsStatusCode;
 import com.mozaicgames.executors.CDatabaseKeys;
 import com.mozaicgames.executors.CRequestKeys;
 
-public class CBackendQueryGetUserGameData 
+public class CBackendQueryGetUserWalletData 
 {
-	private CBackendQueryGetUserGameData() 
+	private CBackendQueryGetUserWalletData() 
 	{
 		
 	}
 	
-	static public JSONObject getUserData(int userId, DataSource dataSource) throws CBackendRequestException
+	static public JSONObject getUserGameData(int userId, String devicePlatform, DataSource dataSource) throws CBackendRequestException
 	{
 		Connection sqlConnection = null;
 		PreparedStatement preparedStatementSelect = null;
@@ -29,13 +29,13 @@ public class CBackendQueryGetUserGameData
 			sqlConnection = dataSource.getConnection();
 			sqlConnection.setAutoCommit(false);
 
-			CSqlBuilderSelect sqlBuilderSelect = new CSqlBuilderSelect()
-					.from(CDatabaseKeys.mKeyTableUsersTableName)
-					.column(CDatabaseKeys.mKeyTableUsersUserLevel)
-					.column(CDatabaseKeys.mKeyTableUsersUserXp)
-					.column(CDatabaseKeys.mKeyTableUsersUserTrophies)
-					.where(CDatabaseKeys.mKeyTableUsersUserId + "=" + userId);
-			
+			final CSqlBuilderSelect sqlBuilderSelect = new CSqlBuilderSelect()
+					.from(CDatabaseKeys.mKeyTableUsersWalletDataTableName)
+					.column(CDatabaseKeys.mKeyTableUsersWalletDataCreditsNum)
+					.column(CDatabaseKeys.mKeyTableUsersWalletDataJockersNum)
+					.column(CDatabaseKeys.mKeyTableUsersWalletDataLivesNum)
+					.where(CDatabaseKeys.mKeyTableUsersWalletDataUserId + "='" + userId + "' and " + CDatabaseKeys.mKeyTableUsersWalletDataDevicePlatform + "='" + devicePlatform + "'");
+
 			// find the session in the database first
 			final String strQuerySelect = sqlBuilderSelect.toString();
 			preparedStatementSelect = sqlConnection.prepareStatement(strQuerySelect);
@@ -43,14 +43,14 @@ public class CBackendQueryGetUserGameData
 			ResultSet response = preparedStatementSelect.executeQuery();
 			if (response != null && response.next()) 
 			{
-				final int dataUserLevel = response.getInt(1);
-				final int dataUserXp = response.getInt(2);
-				final int dataUserTrophies = response.getInt(3);
-				
+				final int dataCreditsNum = response.getInt(1);
+				final int dataJockersNum = response.getInt(2);
+				final int dataLivesNum = response.getInt(3);
+
 				JSONObject responseUserData = new JSONObject();
-				responseUserData.put(CRequestKeys.mKeyUserUserDataLevel, dataUserLevel);
-				responseUserData.put(CRequestKeys.mKeyUserUserDataXp, dataUserXp);
-				responseUserData.put(CRequestKeys.mKeyUserUserDataTrophies, dataUserTrophies);
+				responseUserData.put(CRequestKeys.mKeyUserWalletDataCreditsNum, dataCreditsNum);
+				responseUserData.put(CRequestKeys.mKeyUserWalletDataJockersNum, dataJockersNum);
+				responseUserData.put(CRequestKeys.mKeyUserWalletDataLivesNum, dataLivesNum);
 				return responseUserData;
 			}
 		} 

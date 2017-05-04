@@ -3,7 +3,6 @@ package com.mozaicgames.executors;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.sql.Timestamp;
 
 import org.json.JSONObject;
 
@@ -13,7 +12,7 @@ import com.mozaicgames.core.CBackendRequestExecutorParameters;
 import com.mozaicgames.core.EBackendResponsStatusCode;
 import com.mozaicgames.utils.CSqlBuilderUpdate;
 
-public class CRequestExecutorUpdateUsageTime extends CBackendRequestExecutor
+public class CRequestExecutorUpdateUserSettings extends CBackendRequestExecutor
 {
 	@Override
 	public boolean isSessionTokenValidationNeeded() 
@@ -23,22 +22,42 @@ public class CRequestExecutorUpdateUsageTime extends CBackendRequestExecutor
 	
 	@Override
 	public JSONObject execute(JSONObject jsonData, CBackendRequestExecutorParameters parameters) throws CBackendRequestException
-	{	
+	{
 		Connection sqlConnection = null;
 		PreparedStatement preparedStatementUpdate = null;
 		
 		try 
 		{
-			final int deviceUsageTime = jsonData.getInt(CRequestKeys.mKeyDeviceUsageTime);
-
 			sqlConnection = parameters.getSqlDataSource().getConnection();
 			sqlConnection.setAutoCommit(false);
-
+			
 			CSqlBuilderUpdate sqlBuilderUpdate = new CSqlBuilderUpdate()
-					.table(CDatabaseKeys.mKeyTableDevicesTableName)
-					.set(CDatabaseKeys.mKeyTableDevicesUpdateDate, new Timestamp(System.currentTimeMillis()).toString())
-					.update(CDatabaseKeys.mKeyTableDevicesUsageTime, Integer.toString(deviceUsageTime), "+")
-					.where(CDatabaseKeys.mKeyTableDevicesDeviceId + "=" + parameters.getDeviceId());
+					.table(CDatabaseKeys.mKeyTableUsersSettingsTableName)
+					.where(CDatabaseKeys.mKeyTableUsersSettingsUserId + "=" + parameters.getUserId());
+			
+			if (jsonData.has(CRequestKeys.mKeyUserSettingsMagnetOn))
+			{
+				final int deviceMagnetOn = jsonData.getBoolean(CRequestKeys.mKeyUserSettingsMagnetOn) ? 1 : 0;
+				sqlBuilderUpdate.set(CDatabaseKeys.mKeyTableUsersSettingsMagnetOn, Integer.toString(deviceMagnetOn));
+			}
+			
+			if (jsonData.has(CRequestKeys.mKeyUserSettingsLeftHandedOn))
+			{
+				final int deviceLeftHandedOn = jsonData.getBoolean(CRequestKeys.mKeyUserSettingsLeftHandedOn) ? 1 : 0;
+				sqlBuilderUpdate.set(CDatabaseKeys.mKeyTableUsersSettingsLeftHandedOn, Integer.toString(deviceLeftHandedOn));
+			}
+			
+			if (jsonData.has(CRequestKeys.mKeyUserSettingsMusicOn))
+			{
+				final int deviceMusicOn = jsonData.getBoolean(CRequestKeys.mKeyUserSettingsMusicOn) ? 1 : 0;
+				sqlBuilderUpdate.set(CDatabaseKeys.mKeyTableUsersSettingsMusicOn, Integer.toString(deviceMusicOn));
+			}
+			
+			if (jsonData.has(CRequestKeys.mKeyUserSettingsSfxOn))
+			{
+				final int deviceSfxOn = jsonData.getBoolean(CRequestKeys.mKeyUserSettingsSfxOn) ? 1 : 0;
+				sqlBuilderUpdate.set(CDatabaseKeys.mKeyTableUsersSettingsSfxOn, Integer.toString(deviceSfxOn));
+			}
 			
 			final String strQueryUpdate = sqlBuilderUpdate.toString(); 
 			preparedStatementUpdate = sqlConnection.prepareStatement(strQueryUpdate, PreparedStatement.RETURN_GENERATED_KEYS);
@@ -49,8 +68,9 @@ public class CRequestExecutorUpdateUsageTime extends CBackendRequestExecutor
 				throw new Exception("Nothing updated in database!");
 			}		
 			
-			sqlConnection.commit();
-			return toJSONObject(EBackendResponsStatusCode.STATUS_OK, null);
+			JSONObject jsonResponse = new JSONObject();
+			sqlConnection.commit();			
+			return toJSONObject(EBackendResponsStatusCode.STATUS_OK, jsonResponse);
 		}
 		catch (Exception e)
 		{
@@ -81,5 +101,4 @@ public class CRequestExecutorUpdateUsageTime extends CBackendRequestExecutor
 			}
 		}
 	}
-	
 }

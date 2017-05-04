@@ -13,7 +13,12 @@ import com.mozaicgames.core.CBackendRequestException;
 import com.mozaicgames.core.CBackendRequestExecutor;
 import com.mozaicgames.core.CBackendRequestExecutorParameters;
 import com.mozaicgames.core.EBackendResponsStatusCode;
+import com.mozaicgames.utils.CBackendQueryGetUserGameData;
+import com.mozaicgames.utils.CBackendQueryGetUserWalletData;
+import com.mozaicgames.utils.CBackendQueryGetUserSettingsData;
 import com.mozaicgames.utils.CSqlBuilderInsert;
+import com.mozaicgames.utils.CSqlBuilderSelect;
+import com.mozaicgames.utils.CSqlBuilderUpdate;
 
 public class CRequestExecutorRegisterGameResult extends CBackendRequestExecutor 
 {
@@ -28,11 +33,11 @@ public class CRequestExecutorRegisterGameResult extends CBackendRequestExecutor
 	{
 		Connection sqlConnection = null;
 		PreparedStatement preparedStatementInsert = null;
+		PreparedStatement preparedStatementUpdate = null;
 		try 
 		{
 			sqlConnection = parameters.getSqlDataSource().getConnection();
 			sqlConnection.setAutoCommit(false);
-			
 			
 			JSONArray jsonGamesDataArray = jsonData.getJSONArray(CRequestKeys.mKeyGameDataVector);			
 			final int jsonGamesDataArrayLength = jsonGamesDataArray.length();
@@ -41,6 +46,11 @@ public class CRequestExecutorRegisterGameResult extends CBackendRequestExecutor
 			{
 				throw new JSONException("Invalid array data!");
 			}
+			
+			final JSONObject jsonCurrentUserData = CBackendQueryGetUserGameData.getUserData(parameters.getUserId(), parameters.getSqlDataSource()); 
+			int currentUserLevel = jsonCurrentUserData.getInt(CRequestKeys.mKeyUserUserDataLevel);
+			int currentUserXp = jsonCurrentUserData.getInt(CRequestKeys.mKeyUserUserDataXp);
+			int currentUserTrophies = jsonCurrentUserData.getInt(CRequestKeys.mKeyUserUserDataTrophies);
 			
 			for (int i = 0; i < jsonGamesDataArrayLength; i++) 
 			{
@@ -56,7 +66,8 @@ public class CRequestExecutorRegisterGameResult extends CBackendRequestExecutor
 				final int numUsedActions = jsonGameData.getInt(CRequestKeys.mKeyGameActionsUsedNum);
 				final int numUsedHints = jsonGameData.getInt(CRequestKeys.mKeyGameHintsUsedNum);
 				final int numUsedJockers = jsonGameData.getInt(CRequestKeys.mKeyGameJockersUsedNum);
-			
+				final int gainedXp = jsonGameData.getInt(CRequestKeys.mKeyGameGainedXp);
+				
 				CSqlBuilderInsert sqlBuilderInsert = new CSqlBuilderInsert()
 						.into(CDatabaseKeys.mKeyTableGameResultsTableName)
 						.value(CDatabaseKeys.mKeyTableGameResultsSessionId, Long.toString(parameters.getSessionId()))
@@ -70,20 +81,71 @@ public class CRequestExecutorRegisterGameResult extends CBackendRequestExecutor
 						.value(CDatabaseKeys.mKeyTableGameResultsDeckRefreshNum, Integer.toString(numDeckRefreshed))
 						.value(CDatabaseKeys.mKeyTableGameResultsUsedActionsNum, Integer.toString(numUsedActions))
 						.value(CDatabaseKeys.mKeyTableGameResultsUsedHintsNum, Integer.toString(numUsedHints))
-						.value(CDatabaseKeys.mKeyTableGameResultsUsedJockersNum, Integer.toString(numUsedJockers));
+						.value(CDatabaseKeys.mKeyTableGameResultsUsedJockersNum, Integer.toString(numUsedJockers))
+						.value(CDatabaseKeys.mKeyTableGameResultsGainedXp, Integer.toString(gainedXp));
 				
-				final String strQuerInsert = sqlBuilderInsert.toString(); 
-				preparedStatementInsert = sqlConnection.prepareStatement(strQuerInsert, PreparedStatement.RETURN_GENERATED_KEYS);
+				final String strQueryInsert = sqlBuilderInsert.toString(); 
+				preparedStatementInsert = sqlConnection.prepareStatement(strQueryInsert, PreparedStatement.RETURN_GENERATED_KEYS);
 				
 				int affectedRows = preparedStatementInsert.executeUpdate();
 				if (affectedRows == 0)
 				{
 					throw new SQLException("Nothing updated in database!");
 				}
+				
+				switch (gameReuslt)
+				{
+					default:
+					case 0: // application closed
+					case 1: // user quit
+						currentUserTrophies -= 2;
+						break;
+					case 2: // user timeout
+						currentUserTrophies -= 1;
+						break;
+					case 3:
+						currentUserTrophies += 1;
+						break;
+					case 4:
+						currentUserTrophies += 2;
+						break;
+					case 5:
+						currentUserTrophies += -1;
+						break;
+				}
+				
+				currentUserXp += gainedXp;
 			}
 			
+			
+			// calculate new user level
+
+			
+			CSqlBuilderUpdate sqlBuilderUpdateUserData = new CSqlBuilderUpdate()
+							.table(CDatabaseKeys.mKeyTableUsersTableName)
+							.set(CDatabaseKeys.mKeyTableUsersUserLevel, Integer.toString(currentUserLevel))
+							.set(CDatabaseKeys.mKeyTableUsersUserXp, Integer.toString(currentUserXp))
+							.set(CDatabaseKeys.mKeyTableUsersUserTrophies, Integer.toString(currentUserTrophies))
+							.where(CDatabaseKeys.mKeyTableUsersUserId + "=" + parameters.getUserId());
+			
+			final String strQueryUpdateUsers = sqlBuilderUpdateUserData.toString(); 
+			preparedStatementUpdate = sqlConnection.prepareStatement(strQueryUpdateUsers, PreparedStatement.RETURN_GENERATED_KEYS);
+			
+			int affectedRowsUpdate = preparedStatementUpdate.executeUpdate();
+			if (affectedRowsUpdate == 0)
+			{
+				throw new SQLException("Nothing updated in database!");
+			}
+			
+			JSONObject responseUserGameData = new JSONObject();			
+			responseUserGameData.put(CRequestKeys.mKeyUserWalletDataCreditsNum, currentUserLevel);
+			responseUserGameData.put(CRequestKeys.mKeyUserWalletDataJockersNum, currentUserXp);
+			responseUserGameData.put(CRequestKeys.mKeyUserWalletDataLivesNum, currentUserTrophies);
+			
 			JSONObject jsonResponse = new JSONObject();
-			sqlConnection.commit();			
+			jsonResponse.put(CRequestKeys.mKeyClientUserGameData, responseUserGameData);
+			
+			sqlConnection.commit();
 			return toJSONObject(EBackendResponsStatusCode.STATUS_OK, jsonResponse);
 		}
 		catch (JSONException e)
@@ -92,7 +154,6 @@ public class CRequestExecutorRegisterGameResult extends CBackendRequestExecutor
 		} 
 		catch (SQLException e) 
 		{
-			// TODO Auto-generated catch block
 			throw new CBackendRequestException(EBackendResponsStatusCode.INTERNAL_ERROR, e.getMessage());
 		}
 		finally
@@ -102,6 +163,17 @@ public class CRequestExecutorRegisterGameResult extends CBackendRequestExecutor
 				try 
 				{
 					preparedStatementInsert.close();
+				} 
+				catch (SQLException e) 
+				{
+					System.err.println(e.getMessage());
+				}
+			}
+			if (preparedStatementUpdate != null)
+			{
+				try 
+				{
+					preparedStatementUpdate.close();
 				} 
 				catch (SQLException e) 
 				{

@@ -9,6 +9,7 @@ import com.mozaicgames.core.CBackendRequestExecutorParameters;
 import com.mozaicgames.core.EBackendResponsStatusCode;
 import com.mozaicgames.utils.CBackendAdvancedEncryptionStandard;
 import com.mozaicgames.utils.CBackendQueryGetUserGameData;
+import com.mozaicgames.utils.CBackendQueryGetUserWalletData;
 import com.mozaicgames.utils.CBackendQueryGetUserSettingsData;
 import com.mozaicgames.utils.CBackendQueryResponse;
 import com.mozaicgames.utils.CBackendQueryValidateDevice;
@@ -71,7 +72,8 @@ public class CRequestExecutorRegisterSession extends CBackendRequestExecutor
 				JSONObject jsonResponse = new JSONObject();
 				jsonResponse.put(CRequestKeys.mKeyClientSessionToken, activeSession.getKey());
 				jsonResponse.put(CRequestKeys.mKeyClientUserSettingsData, CBackendQueryGetUserSettingsData.getUserGameData(userId, parameters.getSqlDataSource()));
-				jsonResponse.put(CRequestKeys.mKeyClientUserGameData, CBackendQueryGetUserGameData.getUserGameData(userId, activeSession.getPlatform(), parameters.getSqlDataSource()));
+				jsonResponse.put(CRequestKeys.mKeyClientUserWalletData, CBackendQueryGetUserWalletData.getUserGameData(userId, activeSession.getPlatform(), parameters.getSqlDataSource()));
+				jsonResponse.put(CRequestKeys.mKeyClientUserGameData, CBackendQueryGetUserGameData.getUserData(userId, parameters.getSqlDataSource()));
 				return toJSONObject(EBackendResponsStatusCode.STATUS_OK, jsonResponse);
 			} 
 			catch (JSONException e)

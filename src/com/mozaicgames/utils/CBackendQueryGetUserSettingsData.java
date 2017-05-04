@@ -50,12 +50,10 @@ public class CBackendQueryGetUserSettingsData
 				final short dataSfxOn = response.getShort(4);
 				
 				JSONObject responseUserData = new JSONObject();
-				
 				responseUserData.put(CRequestKeys.mKeyUserSettingsMagnetOn, dataMagnetOn);
 				responseUserData.put(CRequestKeys.mKeyUserSettingsLeftHandedOn, dataLeftHandedOn);
 				responseUserData.put(CRequestKeys.mKeyUserSettingsMusicOn, dataMusicOn);
 				responseUserData.put(CRequestKeys.mKeyUserSettingsSfxOn, dataSfxOn);
-				
 				return responseUserData;
 			}
 		} 

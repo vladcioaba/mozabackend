@@ -70,8 +70,15 @@ public class CRequestExecutorRegisterUserAnonymous extends CBackendRequestExecut
 			sqlConnection = parameters.getSqlDataSource().getConnection();
 			sqlConnection.setAutoCommit(false);
 		
+			final String defaultValueUserLevel = "1";
+			final String defaultValueUserXp = "0";
+			final String defaultValueUserTrophies = "1000";
+			
 			final CSqlBuilderInsert sqlBuilderInsertNewUser = new CSqlBuilderInsert()
 					.into(CDatabaseKeys.mKeyTableUsersTableName)
+					.value(CDatabaseKeys.mKeyTableUsersUserLevel, defaultValueUserLevel)
+					.value(CDatabaseKeys.mKeyTableUsersUserXp, defaultValueUserXp)
+					.value(CDatabaseKeys.mKeyTableUsersUserTrophies, defaultValueUserTrophies)
 					.value(CDatabaseKeys.mKeyTableUsersUserCreationDate, new Timestamp(System.currentTimeMillis()).toString());
 			
 			final String strQueryInsertUser = sqlBuilderInsertNewUser.toString();
@@ -132,13 +139,13 @@ public class CRequestExecutorRegisterUserAnonymous extends CBackendRequestExecut
 			}	
 			
 			final CSqlBuilderInsert sqlBuilderInsertNewUserGameData = new CSqlBuilderInsert()
-					.into(CDatabaseKeys.mKeyTableUsersDataTableName)
-					.value(CDatabaseKeys.mKeyTableUsersDataUserId, Integer.toString(newUserId))
-					.value(CDatabaseKeys.mKeyTableUsersDataDevicePlatform, devicePlatform)
-					.value(CDatabaseKeys.mKeyTableUsersDataCreditsNum, defaultValueCreditsNum)
-					.value(CDatabaseKeys.mKeyTableUsersDataJockersNum, defaultValueJockersNum)
-					.value(CDatabaseKeys.mKeyTableUsersDataLivesNum, defaultValueLivesNum)
-					.value(CDatabaseKeys.mKeyTableUsersDataLivesMaxNum, defaultValueLivesMaxNum);
+					.into(CDatabaseKeys.mKeyTableUsersWalletDataTableName)
+					.value(CDatabaseKeys.mKeyTableUsersWalletDataUserId, Integer.toString(newUserId))
+					.value(CDatabaseKeys.mKeyTableUsersWalletDataDevicePlatform, devicePlatform)
+					.value(CDatabaseKeys.mKeyTableUsersWalletDataCreditsNum, defaultValueCreditsNum)
+					.value(CDatabaseKeys.mKeyTableUsersWalletDataJockersNum, defaultValueJockersNum)
+					.value(CDatabaseKeys.mKeyTableUsersWalletDataLivesNum, defaultValueLivesNum)
+					.value(CDatabaseKeys.mKeyTableUsersWalletDataLivesMaxNum, defaultValueLivesMaxNum);
 			
 			final String strQueryInsertUserData = sqlBuilderInsertNewUserGameData.toString();
 			preparedStatementInsertUserData = sqlConnection.prepareStatement(strQueryInsertUserData, PreparedStatement.RETURN_GENERATED_KEYS);
@@ -148,23 +155,30 @@ public class CRequestExecutorRegisterUserAnonymous extends CBackendRequestExecut
 				throw new Exception("Nothing updated in database!");
 			}			
 
-			JSONObject responseUserSettings = new JSONObject();
-			responseUserSettings.put(CRequestKeys.mKeyUserSettingsMagnetOn, defaultValueMagnetOn);
-			responseUserSettings.put(CRequestKeys.mKeyUserSettingsLeftHandedOn, defaultValueLeftHandedOn);
-			responseUserSettings.put(CRequestKeys.mKeyUserSettingsMusicOn, defaultValueMusicOn);
-			responseUserSettings.put(CRequestKeys.mKeyUserSettingsSfxOn, defaultValueSfxOn);
+			JSONObject responseUserSettingsData = new JSONObject();
+			responseUserSettingsData.put(CRequestKeys.mKeyUserSettingsMagnetOn, defaultValueMagnetOn);
+			responseUserSettingsData.put(CRequestKeys.mKeyUserSettingsLeftHandedOn, defaultValueLeftHandedOn);
+			responseUserSettingsData.put(CRequestKeys.mKeyUserSettingsMusicOn, defaultValueMusicOn);
+			responseUserSettingsData.put(CRequestKeys.mKeyUserSettingsSfxOn, defaultValueSfxOn);
 			
-			JSONObject responseUserData = new JSONObject();
-			responseUserData.put(CRequestKeys.mKeyUserGameDataCreditsNum, defaultValueCreditsNum);
-			responseUserData.put(CRequestKeys.mKeyUserGameDataJockersNum, defaultValueJockersNum);
-			responseUserData.put(CRequestKeys.mKeyUserGameDataLivesNum, defaultValueLivesNum);
-			responseUserData.put(CRequestKeys.mKeyUserGameDataLivesMaxNum, defaultValueLivesMaxNum);
+			JSONObject responseUserWalletData = new JSONObject();
+			responseUserWalletData.put(CRequestKeys.mKeyUserWalletDataCreditsNum, defaultValueCreditsNum);
+			responseUserWalletData.put(CRequestKeys.mKeyUserWalletDataJockersNum, defaultValueJockersNum);
+			responseUserWalletData.put(CRequestKeys.mKeyUserWalletDataLivesNum, defaultValueLivesNum);
+			responseUserWalletData.put(CRequestKeys.mKeyUserWalletDataLivesMaxNum, defaultValueLivesMaxNum);
 			
-			String userToken = encripter.encrypt(String.valueOf(newUserId));			
+			JSONObject responseUserGameData = new JSONObject();
+			responseUserGameData.put(CRequestKeys.mKeyUserUserDataLevel, defaultValueUserLevel);
+			responseUserGameData.put(CRequestKeys.mKeyUserUserDataXp, defaultValueUserXp);
+			responseUserGameData.put(CRequestKeys.mKeyUserUserDataTrophies, defaultValueUserTrophies);
+			
 			JSONObject jsonResponse = new JSONObject();
+			String userToken = encripter.encrypt(String.valueOf(newUserId));			
 			jsonResponse.put(CRequestKeys.mKeyClientUserToken, userToken);
-			jsonResponse.put(CRequestKeys.mKeyClientUserSettingsData, responseUserSettings);
-			jsonResponse.put(CRequestKeys.mKeyClientUserGameData, responseUserData);
+			jsonResponse.put(CRequestKeys.mKeyClientUserSettingsData, responseUserSettingsData);
+			jsonResponse.put(CRequestKeys.mKeyClientUserWalletData, responseUserWalletData);
+			jsonResponse.put(CRequestKeys.mKeyClientUserGameData, responseUserGameData);
+			
 			sqlConnection.commit();
 			return toJSONObject(EBackendResponsStatusCode.STATUS_OK, jsonResponse);
 		}

@@ -45,6 +45,9 @@ public class CRequestExecutorRegisterDevice extends CBackendRequestExecutor
 		Connection sqlConnection = null;
 		PreparedStatement preparedStatementInsert = null;
 		
+		//@TODO
+		// check input parameters
+		
 		try 
 		{
 			sqlConnection = parameters.getSqlDataSource().getConnection();
