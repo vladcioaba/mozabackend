@@ -48,9 +48,9 @@ public class CRequestExecutorRegisterGameResult extends CBackendRequestExecutor
 			}
 			
 			final JSONObject jsonCurrentUserData = CBackendQueryGetUserGameData.getUserData(parameters.getUserId(), parameters.getSqlDataSource()); 
-			int currentUserLevel = jsonCurrentUserData.getInt(CRequestKeys.mKeyUserUserDataLevel);
-			int currentUserXp = jsonCurrentUserData.getInt(CRequestKeys.mKeyUserUserDataXp);
-			int currentUserTrophies = jsonCurrentUserData.getInt(CRequestKeys.mKeyUserUserDataTrophies);
+			int currentUserLevel = jsonCurrentUserData.getInt(CRequestKeys.mKeyUserDataLevel);
+			int currentUserXp = jsonCurrentUserData.getInt(CRequestKeys.mKeyUserDataXp);
+			int currentUserTrophies = jsonCurrentUserData.getInt(CRequestKeys.mKeyUserDataTrophies);
 			
 			for (int i = 0; i < jsonGamesDataArrayLength; i++) 
 			{
@@ -65,8 +65,12 @@ public class CRequestExecutorRegisterGameResult extends CBackendRequestExecutor
 				final int numDeckRefreshed = jsonGameData.getInt(CRequestKeys.mKeyGameDeckRefreshNum);
 				final int numUsedActions = jsonGameData.getInt(CRequestKeys.mKeyGameActionsUsedNum);
 				final int numUsedHints = jsonGameData.getInt(CRequestKeys.mKeyGameHintsUsedNum);
-				final int numUsedJockers = jsonGameData.getInt(CRequestKeys.mKeyGameJockersUsedNum);
-				final int gainedXp = jsonGameData.getInt(CRequestKeys.mKeyGameGainedXp);
+				final int numUsedJockers = jsonGameData.getInt(CRequestKeys.mKeyGameJokersUsedNum);
+				final int foundationRank1 = jsonGameData.getInt(CRequestKeys.mKeyGameFoundationRank1);
+				final int foundationRank2 = jsonGameData.getInt(CRequestKeys.mKeyGameFoundationRank2);
+				final int foundationRank3 = jsonGameData.getInt(CRequestKeys.mKeyGameFoundationRank3);
+				final int foundationRank4 = jsonGameData.getInt(CRequestKeys.mKeyGameFoundationRank4);
+				final int gainedXp = foundationRank1 + foundationRank2 + foundationRank3 + foundationRank4;
 				
 				CSqlBuilderInsert sqlBuilderInsert = new CSqlBuilderInsert()
 						.into(CDatabaseKeys.mKeyTableGameResultsTableName)
@@ -81,8 +85,12 @@ public class CRequestExecutorRegisterGameResult extends CBackendRequestExecutor
 						.value(CDatabaseKeys.mKeyTableGameResultsDeckRefreshNum, Integer.toString(numDeckRefreshed))
 						.value(CDatabaseKeys.mKeyTableGameResultsUsedActionsNum, Integer.toString(numUsedActions))
 						.value(CDatabaseKeys.mKeyTableGameResultsUsedHintsNum, Integer.toString(numUsedHints))
-						.value(CDatabaseKeys.mKeyTableGameResultsUsedJockersNum, Integer.toString(numUsedJockers))
-						.value(CDatabaseKeys.mKeyTableGameResultsGainedXp, Integer.toString(gainedXp));
+						.value(CDatabaseKeys.mKeyTableGameResultsUsedJokersNum, Integer.toString(numUsedJockers))
+						.value(CDatabaseKeys.mKeyTableGameResultsGainedXp, Integer.toString(gainedXp))
+						.value(CDatabaseKeys.mKeyTableGameResultsFoundationRank1, Integer.toString(foundationRank1))
+						.value(CDatabaseKeys.mKeyTableGameResultsFoundationRank2, Integer.toString(foundationRank2))
+						.value(CDatabaseKeys.mKeyTableGameResultsFoundationRank3, Integer.toString(foundationRank3))
+						.value(CDatabaseKeys.mKeyTableGameResultsFoundationRank4, Integer.toString(foundationRank4));
 				
 				final String strQueryInsert = sqlBuilderInsert.toString(); 
 				preparedStatementInsert = sqlConnection.prepareStatement(strQueryInsert, PreparedStatement.RETURN_GENERATED_KEYS);
@@ -103,13 +111,13 @@ public class CRequestExecutorRegisterGameResult extends CBackendRequestExecutor
 					case 2: // user timeout
 						currentUserTrophies -= 1;
 						break;
-					case 3:
+					case 3: // user won
 						currentUserTrophies += 1;
 						break;
-					case 4:
+					case 4: // user won 4k
 						currentUserTrophies += 2;
 						break;
-					case 5:
+					case 5: // user lost
 						currentUserTrophies += -1;
 						break;
 				}
@@ -139,7 +147,7 @@ public class CRequestExecutorRegisterGameResult extends CBackendRequestExecutor
 			
 			JSONObject responseUserGameData = new JSONObject();			
 			responseUserGameData.put(CRequestKeys.mKeyUserWalletDataCreditsNum, currentUserLevel);
-			responseUserGameData.put(CRequestKeys.mKeyUserWalletDataJockersNum, currentUserXp);
+			responseUserGameData.put(CRequestKeys.mKeyUserWalletDataJokersNum, currentUserXp);
 			responseUserGameData.put(CRequestKeys.mKeyUserWalletDataLivesNum, currentUserTrophies);
 			
 			JSONObject jsonResponse = new JSONObject();

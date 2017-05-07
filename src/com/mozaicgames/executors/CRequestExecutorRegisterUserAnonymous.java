@@ -143,7 +143,7 @@ public class CRequestExecutorRegisterUserAnonymous extends CBackendRequestExecut
 					.value(CDatabaseKeys.mKeyTableUsersWalletDataUserId, Integer.toString(newUserId))
 					.value(CDatabaseKeys.mKeyTableUsersWalletDataDevicePlatform, devicePlatform)
 					.value(CDatabaseKeys.mKeyTableUsersWalletDataCreditsNum, defaultValueCreditsNum)
-					.value(CDatabaseKeys.mKeyTableUsersWalletDataJockersNum, defaultValueJockersNum)
+					.value(CDatabaseKeys.mKeyTableUsersWalletDataJokersNum, defaultValueJockersNum)
 					.value(CDatabaseKeys.mKeyTableUsersWalletDataLivesNum, defaultValueLivesNum)
 					.value(CDatabaseKeys.mKeyTableUsersWalletDataLivesMaxNum, defaultValueLivesMaxNum);
 			
@@ -163,14 +163,14 @@ public class CRequestExecutorRegisterUserAnonymous extends CBackendRequestExecut
 			
 			JSONObject responseUserWalletData = new JSONObject();
 			responseUserWalletData.put(CRequestKeys.mKeyUserWalletDataCreditsNum, defaultValueCreditsNum);
-			responseUserWalletData.put(CRequestKeys.mKeyUserWalletDataJockersNum, defaultValueJockersNum);
+			responseUserWalletData.put(CRequestKeys.mKeyUserWalletDataJokersNum, defaultValueJockersNum);
 			responseUserWalletData.put(CRequestKeys.mKeyUserWalletDataLivesNum, defaultValueLivesNum);
 			responseUserWalletData.put(CRequestKeys.mKeyUserWalletDataLivesMaxNum, defaultValueLivesMaxNum);
 			
 			JSONObject responseUserGameData = new JSONObject();
-			responseUserGameData.put(CRequestKeys.mKeyUserUserDataLevel, defaultValueUserLevel);
-			responseUserGameData.put(CRequestKeys.mKeyUserUserDataXp, defaultValueUserXp);
-			responseUserGameData.put(CRequestKeys.mKeyUserUserDataTrophies, defaultValueUserTrophies);
+			responseUserGameData.put(CRequestKeys.mKeyUserDataLevel, defaultValueUserLevel);
+			responseUserGameData.put(CRequestKeys.mKeyUserDataXp, defaultValueUserXp);
+			responseUserGameData.put(CRequestKeys.mKeyUserDataTrophies, defaultValueUserTrophies);
 			
 			JSONObject jsonResponse = new JSONObject();
 			String userToken = encripter.encrypt(String.valueOf(newUserId));			

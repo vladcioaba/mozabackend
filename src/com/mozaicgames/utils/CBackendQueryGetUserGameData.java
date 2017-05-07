@@ -48,9 +48,9 @@ public class CBackendQueryGetUserGameData
 				final int dataUserTrophies = response.getInt(3);
 				
 				JSONObject responseUserData = new JSONObject();
-				responseUserData.put(CRequestKeys.mKeyUserUserDataLevel, dataUserLevel);
-				responseUserData.put(CRequestKeys.mKeyUserUserDataXp, dataUserXp);
-				responseUserData.put(CRequestKeys.mKeyUserUserDataTrophies, dataUserTrophies);
+				responseUserData.put(CRequestKeys.mKeyUserDataLevel, dataUserLevel);
+				responseUserData.put(CRequestKeys.mKeyUserDataXp, dataUserXp);
+				responseUserData.put(CRequestKeys.mKeyUserDataTrophies, dataUserTrophies);
 				return responseUserData;
 			}
 		} 

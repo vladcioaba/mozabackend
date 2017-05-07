@@ -11,7 +11,12 @@ CREATE TABLE `game_results` (
   `deck_refresh_num` int(11) NOT NULL,
   `used_actions_num` int(11) NOT NULL,
   `used_hints_num` int(11) NOT NULL,
-  `used_jockers_num` int(11) NOT NULL,
+  `used_jokers_num` int(11) NOT NULL,
+  `gained_xp` int(11) NOT NULL,
+  `foundation_rank_1` int(11) NOT NULL,
+  `foundation_rank_2` int(11) NOT NULL,
+  `foundation_rank_3` int(11) NOT NULL,
+  `foundation_rank_4` int(11) NOT NULL,
   PRIMARY KEY (`result_id`),
   UNIQUE KEY `result_id_UNIQUE` (`result_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1

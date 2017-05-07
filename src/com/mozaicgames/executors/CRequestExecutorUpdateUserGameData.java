@@ -31,60 +31,36 @@ public class CRequestExecutorUpdateUserGameData extends CBackendRequestExecutor
 			sqlConnection = parameters.getSqlDataSource().getConnection();
 			sqlConnection.setAutoCommit(false);
 			
-//			CSqlBuilderUpdate sqlBuilderUpdate = new CSqlBuilderUpdate()
-//					.table(CDatabaseKeys.mKeyTableUsersdata)
-//					.where(CDatabaseKeys.mKeyTableUsersdataUserId + "=" + parameters.getUserId());
-//			
-//			if (jsonData.has(CRequestKeys.mKeyUserSettingsDataMagnetOn))
-//			{
-//				final int deviceMagnetOn = jsonData.getBoolean(CRequestKeys.mKeyUserSettingsDataMagnetOn) ? 1 : 0;
-//				sqlBuilderUpdate.set(CDatabaseKeys.mKeyTableUsersdataDataMagnetOn, Integer.toString(deviceMagnetOn));
-//			}
-//			
-//			if (jsonData.has(CRequestKeys.mKeyUserSettingsDataLeftHandedOn))
-//			{
-//				final int deviceLeftHandedOn = jsonData.getBoolean(CRequestKeys.mKeyUserSettingsDataLeftHandedOn) ? 1 : 0;
-//				sqlBuilderUpdate.set(CDatabaseKeys.mKeyTableUsersdataDatLeftHandedOn, Integer.toString(deviceLeftHandedOn));
-//			}
-//			
-//			if (jsonData.has(CRequestKeys.mKeyUserSettingsDataMusicOn))
-//			{
-//				final int deviceMusicOn = jsonData.getBoolean(CRequestKeys.mKeyUserSettingsDataMusicOn) ? 1 : 0;
-//				sqlBuilderUpdate.set(CDatabaseKeys.mKeyTableUsersdataDataMusicOn, Integer.toString(deviceMusicOn));
-//			}
-//			
-//			if (jsonData.has(CRequestKeys.mKeyUserSettingsDataSfxOn))
-//			{
-//				final int deviceSfxOn = jsonData.getBoolean(CRequestKeys.mKeyUserSettingsDataSfxOn) ? 1 : 0;
-//				sqlBuilderUpdate.set(CDatabaseKeys.mKeyTableUsersdataDataSfxOn, Integer.toString(deviceSfxOn));
-//			}
-//			
-//			if (jsonData.has(CRequestKeys.mKeyUserGameDataCreditsNum))
-//			{
-//				final int deviceCreditsNum = jsonData.getInt(CRequestKeys.mKeyUserGameDataCreditsNum);
-//				sqlBuilderUpdate.set(CDatabaseKeys.mKeyTableUsersdataDataCreditsNum, Integer.toString(deviceCreditsNum));
-//			}
-//			
-//			if (jsonData.has(CRequestKeys.mKeyUserGameDataJockersNum))
-//			{
-//				final int deviceJockersNum = jsonData.getInt(CRequestKeys.mKeyUserGameDataJockersNum);
-//				sqlBuilderUpdate.set(CDatabaseKeys.mKeyTableUsersdataDataJockersNum, Integer.toString(deviceJockersNum));
-//			}
-//			
-//			if (jsonData.has(CRequestKeys.mKeyUserGameDataLivesNum))
-//			{
-//				final int deviceLivesNum = jsonData.getInt(CRequestKeys.mKeyUserGameDataLivesNum);
-//				sqlBuilderUpdate.set(CDatabaseKeys.mKeyTableUsersdataDataLivesNum, Integer.toString(deviceLivesNum));
-//			}
-//			
-//			final String strQueryUpdate = sqlBuilderUpdate.toString(); 
-//			preparedStatementUpdate = sqlConnection.prepareStatement(strQueryUpdate, PreparedStatement.RETURN_GENERATED_KEYS);
-//			
-//			int affectedRows = preparedStatementUpdate.executeUpdate();
-//			if (affectedRows == 0)
-//			{
-//				throw new Exception("Nothing updated in database!");
-//			}		
+			CSqlBuilderUpdate sqlBuilderUpdate = new CSqlBuilderUpdate()
+					.table(CDatabaseKeys.mKeyTableUsersTableName)
+					.where(CDatabaseKeys.mKeyTableUsersTableName + "=" + parameters.getUserId());
+			
+			if (jsonData.has(CRequestKeys.mKeyUserDataLevel))
+			{
+				final int deviceUserLevel = jsonData.getInt(CRequestKeys.mKeyUserDataLevel);
+				sqlBuilderUpdate.set(CDatabaseKeys.mKeyTableUsersUserLevel, Integer.toString(deviceUserLevel));
+			}
+			
+			if (jsonData.has(CRequestKeys.mKeyUserDataTrophies))
+			{
+				final int deviceUserTrophies = jsonData.getInt(CRequestKeys.mKeyUserDataTrophies);
+				sqlBuilderUpdate.set(CDatabaseKeys.mKeyTableUsersUserTrophies, Integer.toString(deviceUserTrophies));
+			}
+			
+			if (jsonData.has(CRequestKeys.mKeyUserDataXp))
+			{
+				final int deviceDataXp = jsonData.getInt(CRequestKeys.mKeyUserDataXp);
+				sqlBuilderUpdate.set(CDatabaseKeys.mKeyTableUsersUserXp, Integer.toString(deviceDataXp));
+			}
+			
+			final String strQueryUpdate = sqlBuilderUpdate.toString(); 
+			preparedStatementUpdate = sqlConnection.prepareStatement(strQueryUpdate, PreparedStatement.RETURN_GENERATED_KEYS);
+			
+			int affectedRows = preparedStatementUpdate.executeUpdate();
+			if (affectedRows == 0)
+			{
+				throw new Exception("Nothing updated in database!");
+			}	
 			
 			JSONObject jsonResponse = new JSONObject();
 			sqlConnection.commit();			

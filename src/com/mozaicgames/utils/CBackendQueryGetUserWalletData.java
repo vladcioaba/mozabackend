@@ -32,7 +32,7 @@ public class CBackendQueryGetUserWalletData
 			final CSqlBuilderSelect sqlBuilderSelect = new CSqlBuilderSelect()
 					.from(CDatabaseKeys.mKeyTableUsersWalletDataTableName)
 					.column(CDatabaseKeys.mKeyTableUsersWalletDataCreditsNum)
-					.column(CDatabaseKeys.mKeyTableUsersWalletDataJockersNum)
+					.column(CDatabaseKeys.mKeyTableUsersWalletDataJokersNum)
 					.column(CDatabaseKeys.mKeyTableUsersWalletDataLivesNum)
 					.where(CDatabaseKeys.mKeyTableUsersWalletDataUserId + "='" + userId + "' and " + CDatabaseKeys.mKeyTableUsersWalletDataDevicePlatform + "='" + devicePlatform + "'");
 
@@ -49,7 +49,7 @@ public class CBackendQueryGetUserWalletData
 
 				JSONObject responseUserData = new JSONObject();
 				responseUserData.put(CRequestKeys.mKeyUserWalletDataCreditsNum, dataCreditsNum);
-				responseUserData.put(CRequestKeys.mKeyUserWalletDataJockersNum, dataJockersNum);
+				responseUserData.put(CRequestKeys.mKeyUserWalletDataJokersNum, dataJockersNum);
 				responseUserData.put(CRequestKeys.mKeyUserWalletDataLivesNum, dataLivesNum);
 				return responseUserData;
 			}

@@ -15,13 +15,13 @@ public class CRequestKeys
 	public static final String mKeyUserSettingsSfxOn				= "settings_sfx_on";
 	
 	public static final String mKeyUserWalletDataCreditsNum			= "walletdata_credits_num";
-	public static final String mKeyUserWalletDataJockersNum			= "walletdata_jockers_num";
+	public static final String mKeyUserWalletDataJokersNum			= "walletdata_jokers_num";
 	public static final String mKeyUserWalletDataLivesNum			= "walletdata_lives_num";
 	public static final String mKeyUserWalletDataLivesMaxNum		= "walletdata_lives_max_num";
 
-	public static final String mKeyUserUserDataLevel				= "userdata_level";
-	public static final String mKeyUserUserDataXp					= "userdata_xp";
-	public static final String mKeyUserUserDataTrophies				= "userdata_trophies";
+	public static final String mKeyUserDataLevel					= "userdata_level";
+	public static final String mKeyUserDataXp						= "userdata_xp";
+	public static final String mKeyUserDataTrophies					= "userdata_trophies";
 	
 	public static final String mKeyDeviceModel						= "device_model";
 	public static final String mKeyDeviceOsVersion 					= "device_os_version";
@@ -39,6 +39,11 @@ public class CRequestKeys
 	public static final String mKeyGameDeckRefreshNum				= "game_deck_refresh_num";
 	public static final String mKeyGameActionsUsedNum				= "game_actions_used_num";
 	public static final String mKeyGameHintsUsedNum					= "game_hints_used_num";
-	public static final String mKeyGameJockersUsedNum				= "game_jockers_used_num";
-	public static final String mKeyGameGainedXp						= "game_gained_xp";
+	public static final String mKeyGameJokersUsedNum				= "game_jokers_used_num";
+	public static final String mKeyGameFoundationRank1				= "game_foundation_rank_1";
+	public static final String mKeyGameFoundationRank2				= "game_foundation_rank_2";
+	public static final String mKeyGameFoundationRank3				= "game_foundation_rank_3";
+	public static final String mKeyGameFoundationRank4				= "game_foundation_rank_4";
+	
+//	public static final String mKeyGameGainedXp						= "game_gained_xp";
 }

@@ -31,64 +31,51 @@ public class CRequestExecutorUpdateUserWalletData extends CBackendRequestExecuto
 			sqlConnection = parameters.getSqlDataSource().getConnection();
 			sqlConnection.setAutoCommit(false);
 			
-//			CSqlBuilderUpdate sqlBuilderUpdate = new CSqlBuilderUpdate()
-//					.table(CDatabaseKeys.mKeyTableUsersdata)
-//					.where(CDatabaseKeys.mKeyTableUsersdataUserId + "=" + parameters.getUserId());
-//			
-//			if (jsonData.has(CRequestKeys.mKeyUserSettingsDataMagnetOn))
-//			{
-//				final int deviceMagnetOn = jsonData.getBoolean(CRequestKeys.mKeyUserSettingsDataMagnetOn) ? 1 : 0;
-//				sqlBuilderUpdate.set(CDatabaseKeys.mKeyTableUsersdataDataMagnetOn, Integer.toString(deviceMagnetOn));
-//			}
-//			
-//			if (jsonData.has(CRequestKeys.mKeyUserSettingsDataLeftHandedOn))
-//			{
-//				final int deviceLeftHandedOn = jsonData.getBoolean(CRequestKeys.mKeyUserSettingsDataLeftHandedOn) ? 1 : 0;
-//				sqlBuilderUpdate.set(CDatabaseKeys.mKeyTableUsersdataDatLeftHandedOn, Integer.toString(deviceLeftHandedOn));
-//			}
-//			
-//			if (jsonData.has(CRequestKeys.mKeyUserSettingsDataMusicOn))
-//			{
-//				final int deviceMusicOn = jsonData.getBoolean(CRequestKeys.mKeyUserSettingsDataMusicOn) ? 1 : 0;
-//				sqlBuilderUpdate.set(CDatabaseKeys.mKeyTableUsersdataDataMusicOn, Integer.toString(deviceMusicOn));
-//			}
-//			
-//			if (jsonData.has(CRequestKeys.mKeyUserSettingsDataSfxOn))
-//			{
-//				final int deviceSfxOn = jsonData.getBoolean(CRequestKeys.mKeyUserSettingsDataSfxOn) ? 1 : 0;
-//				sqlBuilderUpdate.set(CDatabaseKeys.mKeyTableUsersdataDataSfxOn, Integer.toString(deviceSfxOn));
-//			}
-//			
-//			if (jsonData.has(CRequestKeys.mKeyUserGameDataCreditsNum))
-//			{
-//				final int deviceCreditsNum = jsonData.getInt(CRequestKeys.mKeyUserGameDataCreditsNum);
-//				sqlBuilderUpdate.set(CDatabaseKeys.mKeyTableUsersdataDataCreditsNum, Integer.toString(deviceCreditsNum));
-//			}
-//			
-//			if (jsonData.has(CRequestKeys.mKeyUserGameDataJockersNum))
-//			{
-//				final int deviceJockersNum = jsonData.getInt(CRequestKeys.mKeyUserGameDataJockersNum);
-//				sqlBuilderUpdate.set(CDatabaseKeys.mKeyTableUsersdataDataJockersNum, Integer.toString(deviceJockersNum));
-//			}
-//			
-//			if (jsonData.has(CRequestKeys.mKeyUserGameDataLivesNum))
-//			{
-//				final int deviceLivesNum = jsonData.getInt(CRequestKeys.mKeyUserGameDataLivesNum);
-//				sqlBuilderUpdate.set(CDatabaseKeys.mKeyTableUsersdataDataLivesNum, Integer.toString(deviceLivesNum));
-//			}
-//			
-//			final String strQueryUpdate = sqlBuilderUpdate.toString(); 
-//			preparedStatementUpdate = sqlConnection.prepareStatement(strQueryUpdate, PreparedStatement.RETURN_GENERATED_KEYS);
-//			
-//			int affectedRows = preparedStatementUpdate.executeUpdate();
-//			if (affectedRows == 0)
-//			{
-//				throw new Exception("Nothing updated in database!");
-//			}		
+			int numFieldsUpdated = 0;
+			CSqlBuilderUpdate sqlBuilderUpdate = new CSqlBuilderUpdate()
+					.table(CDatabaseKeys.mKeyTableUsersWalletDataTableName)
+					.where(CDatabaseKeys.mKeyTableUsersWalletDataUserId + "=" + parameters.getUserId());
+		
+			if (jsonData.has(CRequestKeys.mKeyUserWalletDataCreditsNum))
+			{
+				final int deviceCreditsNum = jsonData.getInt(CRequestKeys.mKeyUserWalletDataCreditsNum);
+				sqlBuilderUpdate.set(CDatabaseKeys.mKeyTableUsersWalletDataCreditsNum, Integer.toString(deviceCreditsNum));
+				numFieldsUpdated++;
+			}
 			
-			JSONObject jsonResponse = new JSONObject();
-			sqlConnection.commit();			
-			return toJSONObject(EBackendResponsStatusCode.STATUS_OK, jsonResponse);
+			if (jsonData.has(CRequestKeys.mKeyUserWalletDataJokersNum))
+			{
+				final int deviceJockersNum = jsonData.getInt(CRequestKeys.mKeyUserWalletDataJokersNum);
+				sqlBuilderUpdate.set(CDatabaseKeys.mKeyTableUsersWalletDataJokersNum, Integer.toString(deviceJockersNum));
+				numFieldsUpdated++;
+			}
+			
+			if (jsonData.has(CRequestKeys.mKeyUserWalletDataLivesNum))
+			{
+				final int deviceLivesNum = jsonData.getInt(CRequestKeys.mKeyUserWalletDataLivesNum);
+				sqlBuilderUpdate.set(CDatabaseKeys.mKeyTableUsersWalletDataLivesNum, Integer.toString(deviceLivesNum));
+				numFieldsUpdated++;
+			}
+			
+			if (numFieldsUpdated > 0)
+			{
+				final String strQueryUpdate = sqlBuilderUpdate.toString(); 
+				preparedStatementUpdate = sqlConnection.prepareStatement(strQueryUpdate, PreparedStatement.RETURN_GENERATED_KEYS);
+				
+				int affectedRows = preparedStatementUpdate.executeUpdate();
+				if (affectedRows == 0)
+				{
+					throw new Exception("Nothing updated in database!");
+				}	
+				
+				JSONObject jsonResponse = new JSONObject();
+				sqlConnection.commit();			
+				return toJSONObject(EBackendResponsStatusCode.STATUS_OK, jsonResponse);
+			}
+			else
+			{
+				return toJSONObject(EBackendResponsStatusCode.STATUS_OK, null);
+			}
 		}
 		catch (Exception e)
 		{

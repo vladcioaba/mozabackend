@@ -22,7 +22,7 @@ public class CDatabaseKeys
 	public static final String mKeyTableUsersWalletDataUserId			= "user_id";
 	public static final String mKeyTableUsersWalletDataDevicePlatform	= "device_platform";
 	public static final String mKeyTableUsersWalletDataCreditsNum		= "wallet_credits_num";
-	public static final String mKeyTableUsersWalletDataJockersNum		= "wallet_jockers_num";
+	public static final String mKeyTableUsersWalletDataJokersNum		= "wallet_jokers_num";
 	public static final String mKeyTableUsersWalletDataLivesNum			= "wallet_lives_num";
 	public static final String mKeyTableUsersWalletDataLivesMaxNum		= "wallet_lives_max_num";
 	
@@ -52,8 +52,12 @@ public class CDatabaseKeys
 	public static final String mKeyTableGameResultsDeckRefreshNum		= "deck_refresh_num";
 	public static final String mKeyTableGameResultsUsedActionsNum		= "used_actions_num";
 	public static final String mKeyTableGameResultsUsedHintsNum			= "used_hints_num";
-	public static final String mKeyTableGameResultsUsedJockersNum		= "used_jockers_num";
+	public static final String mKeyTableGameResultsUsedJokersNum		= "used_jokers_num";
 	public static final String mKeyTableGameResultsGainedXp				= "gained_xp";
+	public static final String mKeyTableGameResultsFoundationRank1		= "foundation_rank_1";
+	public static final String mKeyTableGameResultsFoundationRank2		= "foundation_rank_2";
+	public static final String mKeyTableGameResultsFoundationRank3		= "foundation_rank_3";
+	public static final String mKeyTableGameResultsFoundationRank4		= "foundation_rank_4";
 	
 	public static final String mKeyTableSessionTableName				= "sessions";
 	public static final String mKeyTableSessionUserId					= "user_id";
