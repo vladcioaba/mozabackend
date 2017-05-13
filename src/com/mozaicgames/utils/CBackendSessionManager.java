@@ -219,7 +219,7 @@ public class CBackendSessionManager
 			if (response != null && response.next()) 
 			{
 				final long sessionId = response.getLong(1);
-				long timestampNow = System.currentTimeMillis();
+				final long timestampNow = System.currentTimeMillis();
 				final long timestampExpired = response.getTimestamp(2).getTime();
 				final String sessionIp = response.getString(3);
 				final String sessionPlatform = response.getString(4);
@@ -313,7 +313,7 @@ public class CBackendSessionManager
 			}
 
 			final String newSessionKey = mEncripter.encrypt(String.valueOf(sessionId));
-			CBackendSession newSession = new CBackendSession(sessionId, userId, deviceId, newSessionKey, milisCurrent, milisLastOfTheDay, remoteAddress, sessionPlatform);
+			CBackendSession newSession = new CBackendSession(sessionId, userId, deviceId, newSessionKey, milisLastOfTheDay, milisCurrent, remoteAddress, sessionPlatform);
 			mActiveSessions.put(newSessionKey, newSession);
 
 			sqlConnection.commit();
