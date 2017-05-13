@@ -14,10 +14,7 @@ import com.mozaicgames.core.CBackendRequestExecutor;
 import com.mozaicgames.core.CBackendRequestExecutorParameters;
 import com.mozaicgames.core.EBackendResponsStatusCode;
 import com.mozaicgames.utils.CBackendQueryGetUserGameData;
-import com.mozaicgames.utils.CBackendQueryGetUserWalletData;
-import com.mozaicgames.utils.CBackendQueryGetUserSettingsData;
 import com.mozaicgames.utils.CSqlBuilderInsert;
-import com.mozaicgames.utils.CSqlBuilderSelect;
 import com.mozaicgames.utils.CSqlBuilderUpdate;
 
 public class CRequestExecutorRegisterGameResult extends CBackendRequestExecutor 

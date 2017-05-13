@@ -62,8 +62,8 @@ public class CDatabaseKeys
 	public static final String mKeyTableSessionTableName				= "sessions";
 	public static final String mKeyTableSessionUserId					= "user_id";
 	public static final String mKeyTableSessionDeviceId					= "device_id";
-	public static final String mKeyTableSessionCreationData				= "session_creation_date";
-	public static final String mKeyTableSessionExpireData				= "session_expire_date";
+	public static final String mKeyTableSessionCreationDate				= "session_creation_date";
+	public static final String mKeyTableSessionExpireDate				= "session_expire_date";
 	public static final String mKeyTableSessionIp						= "session_ip";
 	public static final String mKeyTableSessionPlatform					= "session_platform";
 }

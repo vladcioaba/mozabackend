@@ -68,7 +68,6 @@ public class CBackendSessionManager
 			} 
 			catch (Exception e) 
 			{
-				// TODO Auto-generated catch block
 				System.err.println(e.getMessage());
 				return null;
 			}
@@ -82,12 +81,12 @@ public class CBackendSessionManager
 				CSqlBuilderSelect sqlBuilderSelect = new CSqlBuilderSelect()
 						.column(CDatabaseKeys.mKeyTableSessionUserId)
 						.column(CDatabaseKeys.mKeyTableSessionDeviceId)
-						.column(CDatabaseKeys.mKeyTableSessionExpireData)
+						.column(CDatabaseKeys.mKeyTableSessionExpireDate)
 						.column(CDatabaseKeys.mKeyTableSessionIp)
 						.column(CDatabaseKeys.mKeyTableSessionPlatform)
 						.from(CDatabaseKeys.mKeyTableSessionTableName)
 						.where(CDatabaseKeys.mKeyTableSessionUserId + "=" + sessionId)
-						.orderBy(CDatabaseKeys.mKeyTableSessionUserId)
+						.orderBy(CDatabaseKeys.mKeyTableSessionExpireDate)
 						.orderType("desc").limit(1);
 
 				// find the session in the database first
@@ -202,13 +201,13 @@ public class CBackendSessionManager
 
 			CSqlBuilder sqlBuilderSelect = new CSqlBuilderSelect()
 					.column(CDatabaseKeys.mKeyTableSessionUserId)
-					.column(CDatabaseKeys.mKeyTableSessionExpireData)
+					.column(CDatabaseKeys.mKeyTableSessionExpireDate)
 					.column(CDatabaseKeys.mKeyTableSessionIp)
 					.column(CDatabaseKeys.mKeyTableSessionPlatform)
 					.from(CDatabaseKeys.mKeyTableSessionTableName)
 					.where(CDatabaseKeys.mKeyTableSessionDeviceId + "=" + deviceId)
 					.where(CDatabaseKeys.mKeyTableSessionUserId + "=" + userId)
-					.orderBy(CDatabaseKeys.mKeyTableSessionUserId)
+					.orderBy(CDatabaseKeys.mKeyTableSessionCreationDate)
 					.orderType("desc").limit(1);
 
 			// find the session in the database first
@@ -216,7 +215,7 @@ public class CBackendSessionManager
 			preparedStatementSelect = sqlConnection.prepareStatement(strQuerySelect);
 
 			ResultSet response = preparedStatementSelect.executeQuery();
-			if (response != null && response.next()) 
+			if (response != null && response.next())
 			{
 				final long sessionId = response.getLong(1);
 				final long timestampNow = System.currentTimeMillis();
@@ -292,8 +291,8 @@ public class CBackendSessionManager
 					.into(CDatabaseKeys.mKeyTableSessionTableName)
 					.value(CDatabaseKeys.mKeyTableSessionUserId, Integer.toString(userId))
 					.value(CDatabaseKeys.mKeyTableSessionDeviceId, Long.toString(deviceId))
-					.value(CDatabaseKeys.mKeyTableSessionCreationData, new Timestamp(milisCurrent).toString())
-					.value(CDatabaseKeys.mKeyTableSessionExpireData, new Timestamp(milisLastOfTheDay).toString())
+					.value(CDatabaseKeys.mKeyTableSessionCreationDate, new Timestamp(milisCurrent).toString())
+					.value(CDatabaseKeys.mKeyTableSessionExpireDate, new Timestamp(milisLastOfTheDay).toString())
 					.value(CDatabaseKeys.mKeyTableSessionIp, remoteAddress)
 					.value(CDatabaseKeys.mKeyTableSessionPlatform, sessionPlatform);
 			
