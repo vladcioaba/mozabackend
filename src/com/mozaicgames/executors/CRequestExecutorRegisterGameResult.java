@@ -67,7 +67,7 @@ public class CRequestExecutorRegisterGameResult extends CBackendRequestExecutor
 				final int foundationRank2 = jsonGameData.getInt(CRequestKeys.mKeyGameFoundationRank2);
 				final int foundationRank3 = jsonGameData.getInt(CRequestKeys.mKeyGameFoundationRank3);
 				final int foundationRank4 = jsonGameData.getInt(CRequestKeys.mKeyGameFoundationRank4);
-				final int gainedXp = foundationRank1 + foundationRank2 + foundationRank3 + foundationRank4;
+				final int gainedXp = foundationRank1 + foundationRank2 + foundationRank3 + foundationRank4 + gameDuration / 10;
 				
 				CSqlBuilderInsert sqlBuilderInsert = new CSqlBuilderInsert()
 						.into(CDatabaseKeys.mKeyTableGameResultsTableName)
@@ -142,13 +142,25 @@ public class CRequestExecutorRegisterGameResult extends CBackendRequestExecutor
 				throw new SQLException("Nothing updated in database!");
 			}
 			
-			JSONObject responseUserGameData = new JSONObject();			
-			responseUserGameData.put(CRequestKeys.mKeyUserWalletDataCreditsNum, currentUserLevel);
-			responseUserGameData.put(CRequestKeys.mKeyUserWalletDataJokersNum, currentUserXp);
-			responseUserGameData.put(CRequestKeys.mKeyUserWalletDataLivesNum, currentUserTrophies);
+			// calculate new rewards
+			
+			int currentCreditsNum = 0;
+			int currentJockersNum = 0;
+			int currentLivesNum = 0;
+			
+			JSONObject responseWalletData = new JSONObject();			
+			responseWalletData.put(CRequestKeys.mKeyUserWalletDataCreditsNum, currentCreditsNum);
+			responseWalletData.put(CRequestKeys.mKeyUserWalletDataJokersNum, currentJockersNum);
+			responseWalletData.put(CRequestKeys.mKeyUserWalletDataLivesNum, currentLivesNum);
+			
+			JSONObject responseGameData = new JSONObject();
+			responseGameData.put(CRequestKeys.mKeyUserDataLevel, currentUserLevel);
+			responseGameData.put(CRequestKeys.mKeyUserDataXp, currentUserXp);
+			responseGameData.put(CRequestKeys.mKeyUserDataTrophies, currentUserTrophies);
 			
 			JSONObject jsonResponse = new JSONObject();
-			jsonResponse.put(CRequestKeys.mKeyClientUserGameData, responseUserGameData);
+			jsonResponse.put(CRequestKeys.mKeyClientUserWalletData, responseWalletData);
+			jsonResponse.put(CRequestKeys.mKeyClientUserGameData, responseGameData);
 			
 			sqlConnection.commit();
 			return toJSONObject(EBackendResponsStatusCode.STATUS_OK, jsonResponse);
