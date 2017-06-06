@@ -148,18 +148,19 @@ public class CRequestExecutorRegisterGameResult extends CBackendRequestExecutor
 			int currentJockersNum = 0;
 			int currentLivesNum = 0;
 			
-			JSONObject responseWalletData = new JSONObject();			
-			responseWalletData.put(CRequestKeys.mKeyUserWalletDataCreditsNum, currentCreditsNum);
-			responseWalletData.put(CRequestKeys.mKeyUserWalletDataJokersNum, currentJockersNum);
-			responseWalletData.put(CRequestKeys.mKeyUserWalletDataLivesNum, currentLivesNum);
 			
 			JSONObject responseGameData = new JSONObject();
 			responseGameData.put(CRequestKeys.mKeyUserDataLevel, currentUserLevel);
 			responseGameData.put(CRequestKeys.mKeyUserDataXp, currentUserXp);
 			responseGameData.put(CRequestKeys.mKeyUserDataTrophies, currentUserTrophies);
 			
+			responseWalletData.put(CRequestKeys.mKeyUserWalletDataCreditsNum, currentCreditsNum);
+			
+			responseWalletData.put(CRequestKeys.mKeyUserWalletDataJokersNum, currentJockersNum);
+			
+			responseWalletData.put(CRequestKeys.mKeyUserWalletDataLivesNum, currentLivesNum);
+			
 			JSONObject jsonResponse = new JSONObject();
-			jsonResponse.put(CRequestKeys.mKeyClientUserWalletData, responseWalletData);
 			jsonResponse.put(CRequestKeys.mKeyClientUserGameData, responseGameData);
 			
 			sqlConnection.commit();
