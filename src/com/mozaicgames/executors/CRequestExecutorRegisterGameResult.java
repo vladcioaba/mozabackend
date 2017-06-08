@@ -48,6 +48,7 @@ public class CRequestExecutorRegisterGameResult extends CBackendRequestExecutor
 			int currentUserLevel = jsonCurrentUserData.getInt(CRequestKeys.mKeyUserDataLevel);
 			int currentUserXp = jsonCurrentUserData.getInt(CRequestKeys.mKeyUserDataXp);
 			int currentUserTrophies = jsonCurrentUserData.getInt(CRequestKeys.mKeyUserDataTrophies);
+			JSONArray gamesRewardsVector = new JSONArray(); 
 			
 			for (int i = 0; i < jsonGamesDataArrayLength; i++) 
 			{
@@ -67,7 +68,11 @@ public class CRequestExecutorRegisterGameResult extends CBackendRequestExecutor
 				final int foundationRank2 = jsonGameData.getInt(CRequestKeys.mKeyGameFoundationRank2);
 				final int foundationRank3 = jsonGameData.getInt(CRequestKeys.mKeyGameFoundationRank3);
 				final int foundationRank4 = jsonGameData.getInt(CRequestKeys.mKeyGameFoundationRank4);
-				final int gainedXp = foundationRank1 + foundationRank2 + foundationRank3 + foundationRank4 + gameDuration / 10;
+				final int gainedXp = 1 + foundationRank1 + foundationRank2 + foundationRank3 + foundationRank4 + gameDuration / 10;
+				int gainedTrophies = 0;
+				int gainedTokens = 0;
+				int gainedJokers = 0;
+				int gainedCredits = 1;
 				
 				CSqlBuilderInsert sqlBuilderInsert = new CSqlBuilderInsert()
 						.into(CDatabaseKeys.mKeyTableGameResultsTableName)
@@ -103,23 +108,55 @@ public class CRequestExecutorRegisterGameResult extends CBackendRequestExecutor
 					default:
 					case 0: // application closed
 					case 1: // user quit
-						currentUserTrophies -= 2;
+						gainedTrophies = -3;
 						break;
 					case 2: // user timeout
-						currentUserTrophies -= 1;
+						gainedTrophies = -1;
 						break;
 					case 3: // user won
-						currentUserTrophies += 1;
+						gainedTrophies = 1;
+						gainedTokens = 1;
 						break;
 					case 4: // user won 4k
-						currentUserTrophies += 2;
+						gainedTrophies = 2;
+						gainedTokens = 1 + (int) Math.random();
+						gainedCredits ++;
+						
+						double randNumber = Math.random();
+						if (randNumber < 0.5)
+						{
+							gainedCredits ++;
+							if (randNumber < 0.1)
+							{
+								gainedCredits ++;
+								gainedJokers ++;
+								
+								if (randNumber < 0.05)
+								{
+									gainedJokers ++;
+								}
+							}
+						}
 						break;
 					case 5: // user lost
-						currentUserTrophies += -1;
+						gainedTrophies = -1;
 						break;
 				}
 				
+				currentUserTrophies += gainedTrophies;
 				currentUserXp += gainedXp;
+				
+				currentUserTrophies = Math.max(currentUserTrophies, 0);
+				
+				// jsonResponse.put(CRequestKeys.mKeyUserDataLevel, currentUserLevel);
+				JSONObject jsonGameResponse = new JSONObject();
+				jsonGameResponse.put(CRequestKeys.mKeyGameRewardsGainedXp, gainedXp);
+				jsonGameResponse.put(CRequestKeys.mKeyGameRewardsGainedTrophie, gainedTrophies);			
+				jsonGameResponse.put(CRequestKeys.mKeyGameRewardsGainedCredits, gainedCredits);
+				jsonGameResponse.put(CRequestKeys.mKeyGameRewardsGainedJokers, gainedJokers);
+				jsonGameResponse.put(CRequestKeys.mKeyGameRewardsGainedTokens, gainedTokens);
+				
+				gamesRewardsVector.put(jsonGameResponse);
 			}
 			
 			
@@ -142,26 +179,8 @@ public class CRequestExecutorRegisterGameResult extends CBackendRequestExecutor
 				throw new SQLException("Nothing updated in database!");
 			}
 			
-			// calculate new rewards
-			
-			int currentCreditsNum = 0;
-			int currentJockersNum = 0;
-			int currentLivesNum = 0;
-			
-			
-			JSONObject responseGameData = new JSONObject();
-			responseGameData.put(CRequestKeys.mKeyUserDataLevel, currentUserLevel);
-			responseGameData.put(CRequestKeys.mKeyUserDataXp, currentUserXp);
-			responseGameData.put(CRequestKeys.mKeyUserDataTrophies, currentUserTrophies);
-			
-			responseWalletData.put(CRequestKeys.mKeyUserWalletDataCreditsNum, currentCreditsNum);
-			
-			responseWalletData.put(CRequestKeys.mKeyUserWalletDataJokersNum, currentJockersNum);
-			
-			responseWalletData.put(CRequestKeys.mKeyUserWalletDataLivesNum, currentLivesNum);
-			
 			JSONObject jsonResponse = new JSONObject();
-			jsonResponse.put(CRequestKeys.mKeyClientUserGameData, responseGameData);
+			jsonResponse.put(CRequestKeys.mKeyGameRewardsVector, gamesRewardsVector);
 			
 			sqlConnection.commit();
 			return toJSONObject(EBackendResponsStatusCode.STATUS_OK, jsonResponse);

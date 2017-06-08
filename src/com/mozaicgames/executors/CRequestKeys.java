@@ -45,5 +45,10 @@ public class CRequestKeys
 	public static final String mKeyGameFoundationRank3				= "game_foundation_rank_3";
 	public static final String mKeyGameFoundationRank4				= "game_foundation_rank_4";
 	
-//	public static final String mKeyGameGainedXp						= "game_gained_xp";
+	public static final String mKeyGameRewardsVector				= "game_rewards";
+	public static final String mKeyGameRewardsGainedXp				= "game_rewards_gained_xp";
+	public static final String mKeyGameRewardsGainedTrophie			= "game_rewards_gained_trophies";
+	public static final String mKeyGameRewardsGainedCredits			= "game_rewards_gained_credits";
+	public static final String mKeyGameRewardsGainedJokers			= "game_rewards_gained_jokers";
+	public static final String mKeyGameRewardsGainedTokens			= "game_rewards_gained_tokens";
 }
