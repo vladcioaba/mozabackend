@@ -104,6 +104,10 @@ public class CBackendSessionManager
 					final String sessionPlatform = response.getString(5);
 
 					CBackendSession newSession = new CBackendSession(sessionId, userId, deviceId, sessionKey, timestampExpired, timestampNow, sessionIp, sessionPlatform);
+					if (timestampNow < timestampExpired) 
+					{
+						mActiveSessions.put(sessionKey, newSession);
+					}
 					return newSession;
 				}
 			} 
@@ -141,6 +145,11 @@ public class CBackendSessionManager
 		} 
 		else 
 		{
+			if (false == isSessionValid(session)) 
+			{
+				mActiveSessions.remove(session.getKey());
+			}
+			
 			return session;
 		}
 
@@ -152,17 +161,9 @@ public class CBackendSessionManager
 		CBackendSession session = mActiveSessions.get(sessionKey);
 		if (session == null) 
 		{
-			session = getLastKnownSessionFor(sessionKey);
-			if (session != null && isSessionValid(session)) 
-			{
-				return session;
-			} 
-			else 
-			{
-				return null;
-			}
+			return getLastKnownSessionFor(sessionKey);
 		} 
-		else 
+		else
 		{
 			if (false == isSessionValid(session)) 
 			{
@@ -180,15 +181,12 @@ public class CBackendSessionManager
 		{
 			if (session.getUserId() == userId && session.getDeviceId() == deviceId) 
 			{
-				if (isSessionValid(session)) 
-				{
-					return session;
-				} 
-				else 
+				if (false == isSessionValid(session)) 
 				{
 					mActiveSessions.remove(session.getKey());
-					break;
-				}
+				} 
+				
+				return session;
 			}
 		}
 
@@ -224,12 +222,13 @@ public class CBackendSessionManager
 				final String sessionPlatform = response.getString(4);
 				final String sessionKey = mEncripter.encrypt(String.valueOf(sessionId));
 
+				CBackendSession newSession = new CBackendSession(sessionId, userId, deviceId, sessionKey, timestampExpired, timestampNow, sessionIp, sessionPlatform);
 				if (timestampNow < timestampExpired) 
 				{
-					CBackendSession newSession = new CBackendSession(sessionId, userId, deviceId, sessionKey, timestampExpired, timestampNow, sessionIp, sessionPlatform);
 					mActiveSessions.put(sessionKey, newSession);
-					return newSession;
 				}
+
+				return newSession;
 			}
 		} 
 		catch (Exception e) 

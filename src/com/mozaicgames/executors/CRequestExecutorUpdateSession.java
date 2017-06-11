@@ -45,24 +45,29 @@ public class CRequestExecutorUpdateSession extends CBackendRequestExecutor
 		final CBackendSessionManager sessionManager = parameters.getSessionManager();		
 		final String remoteAddress = parameters.getRemoteAddress();
 		CBackendSession activeSession = sessionManager.getActiveSessionFor(deviceToken);
-		if (activeSession == null)
+		if (null == activeSession)
 		{
 			CBackendSession lastKnownSession = sessionManager.getLastKnownSessionFor(deviceToken);
-			if (lastKnownSession == null)
+			if (null == lastKnownSession)
 			{
 				throw new CBackendRequestException(EBackendResponsStatusCode.INVALID_TOKEN_SESSION_KEY, "Unknown session token!");
 			}
 			
-			deviceId = lastKnownSession.getDeviceId();
-			userId = lastKnownSession.getUserId();
+			activeSession = lastKnownSession;
 			createNewSession = true;
 		}
 		else
 		{
-			deviceId = activeSession.getDeviceId();
-			userId = activeSession.getUserId();
-			createNewSession = activeSession.getIp().equals(remoteAddress) == false;			
+			createNewSession = activeSession.getIp().equals(remoteAddress) == false;	
 		}
+		
+//		if (false == sessionManager.isSessionValid(activeSession))
+//		{
+//			throw new CBackendRequestException(EBackendResponsStatusCode.TOKEN_SESSION_KEY_EXPIRED, "Token expired!");
+//		}
+		
+		deviceId = activeSession.getDeviceId();
+		userId = activeSession.getUserId();
 		
 		final CBackendQueryValidateDevice validatorDevice = new CBackendQueryValidateDevice(parameters.getSqlDataSource(), deviceId);
 		final CBackendQueryResponse validatorResponse = validatorDevice.execute();		

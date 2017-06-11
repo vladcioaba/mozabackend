@@ -16,9 +16,8 @@ public class CRequestKeys
 	
 	public static final String mKeyUserWalletDataCreditsNum			= "walletdata_credits_num";
 	public static final String mKeyUserWalletDataJokersNum			= "walletdata_jokers_num";
-	public static final String mKeyUserWalletDataLivesNum			= "walletdata_lives_num";
-	public static final String mKeyUserWalletDataLivesMaxNum		= "walletdata_lives_max_num";
-
+	public static final String mKeyUserWalletDataTokensNum			= "walletdata_tokens_num";
+	
 	public static final String mKeyUserDataLevel					= "userdata_level";
 	public static final String mKeyUserDataXp						= "userdata_xp";
 	public static final String mKeyUserDataTrophies					= "userdata_trophies";

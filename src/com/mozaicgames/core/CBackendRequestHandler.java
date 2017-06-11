@@ -193,12 +193,17 @@ public class CBackendRequestHandler implements HttpHandler
 							if (activeSession == null)
 							{
 								throw new CBackendRequestException(EBackendResponsStatusCode.INVALID_TOKEN_SESSION_KEY, "Unknown session token!");
-							}							
+							}	
+						
+							if (false == mSessionManager.isSessionValid(activeSession))
+							{
+								throw new CBackendRequestException(EBackendResponsStatusCode.TOKEN_SESSION_KEY_EXPIRED, "Token expired!");
+							}
 						}
 
 						if (activeSession.getIp().equals(remoteAddress) == false)
 						{
-							throw new CBackendRequestException(EBackendResponsStatusCode.INVALID_TOKEN_SESSION_KEY, "Unknown session token!");
+							throw new CBackendRequestException(EBackendResponsStatusCode.TOKEN_SESSION_KEY_EXPIRED, "Unknown session token!");
 						}
 						
 						deviceId = activeSession.getDeviceId();

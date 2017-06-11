@@ -33,7 +33,7 @@ public class CBackendQueryGetUserWalletData
 					.from(CDatabaseKeys.mKeyTableUsersWalletDataTableName)
 					.column(CDatabaseKeys.mKeyTableUsersWalletDataCreditsNum)
 					.column(CDatabaseKeys.mKeyTableUsersWalletDataJokersNum)
-					.column(CDatabaseKeys.mKeyTableUsersWalletDataLivesNum)
+					.column(CDatabaseKeys.mKeyTableUsersWalletDataTokensNum)
 					.where(CDatabaseKeys.mKeyTableUsersWalletDataUserId + "='" + userId + "' and " + CDatabaseKeys.mKeyTableUsersWalletDataDevicePlatform + "='" + devicePlatform + "'");
 
 			// find the session in the database first
@@ -45,12 +45,12 @@ public class CBackendQueryGetUserWalletData
 			{
 				final int dataCreditsNum = response.getInt(1);
 				final int dataJockersNum = response.getInt(2);
-				final int dataLivesNum = response.getInt(3);
+				final int dataTokensNum = response.getInt(3);
 
 				JSONObject responseUserData = new JSONObject();
 				responseUserData.put(CRequestKeys.mKeyUserWalletDataCreditsNum, dataCreditsNum);
 				responseUserData.put(CRequestKeys.mKeyUserWalletDataJokersNum, dataJockersNum);
-				responseUserData.put(CRequestKeys.mKeyUserWalletDataLivesNum, dataLivesNum);
+				responseUserData.put(CRequestKeys.mKeyUserWalletDataTokensNum, dataTokensNum);
 				return responseUserData;
 			}
 		} 

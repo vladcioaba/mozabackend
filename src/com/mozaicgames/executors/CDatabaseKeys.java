@@ -23,8 +23,7 @@ public class CDatabaseKeys
 	public static final String mKeyTableUsersWalletDataDevicePlatform	= "device_platform";
 	public static final String mKeyTableUsersWalletDataCreditsNum		= "wallet_credits_num";
 	public static final String mKeyTableUsersWalletDataJokersNum		= "wallet_jokers_num";
-	public static final String mKeyTableUsersWalletDataLivesNum			= "wallet_lives_num";
-	public static final String mKeyTableUsersWalletDataLivesMaxNum		= "wallet_lives_max_num";
+	public static final String mKeyTableUsersWalletDataTokensNum		= "wallet_tokens_num";
 	
 	public static final String mKeyTableDevicesTableName				= "devices";
 	public static final String mKeyTableDevicesDeviceId					= "device_id";

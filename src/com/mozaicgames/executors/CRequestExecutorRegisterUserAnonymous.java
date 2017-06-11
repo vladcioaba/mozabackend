@@ -127,8 +127,7 @@ public class CRequestExecutorRegisterUserAnonymous extends CBackendRequestExecut
 			
 			final String defaultValueCreditsNum = "100";
 			final String defaultValueJockersNum = "5";
-			final String defaultValueLivesNum = "5";
-			final String defaultValueLivesMaxNum = "5";
+			final String defaultValueTokensNum = "5";
 			
 			final String strQueryInsertUserSettings = sqlBuilderInsertNewUserSettings.toString();
 			preparedStatementInsertUserSettings = sqlConnection.prepareStatement(strQueryInsertUserSettings, PreparedStatement.RETURN_GENERATED_KEYS);
@@ -144,8 +143,7 @@ public class CRequestExecutorRegisterUserAnonymous extends CBackendRequestExecut
 					.value(CDatabaseKeys.mKeyTableUsersWalletDataDevicePlatform, devicePlatform)
 					.value(CDatabaseKeys.mKeyTableUsersWalletDataCreditsNum, defaultValueCreditsNum)
 					.value(CDatabaseKeys.mKeyTableUsersWalletDataJokersNum, defaultValueJockersNum)
-					.value(CDatabaseKeys.mKeyTableUsersWalletDataLivesNum, defaultValueLivesNum)
-					.value(CDatabaseKeys.mKeyTableUsersWalletDataLivesMaxNum, defaultValueLivesMaxNum);
+					.value(CDatabaseKeys.mKeyTableUsersWalletDataTokensNum, defaultValueTokensNum);
 			
 			final String strQueryInsertUserData = sqlBuilderInsertNewUserGameData.toString();
 			preparedStatementInsertUserData = sqlConnection.prepareStatement(strQueryInsertUserData, PreparedStatement.RETURN_GENERATED_KEYS);
@@ -164,8 +162,7 @@ public class CRequestExecutorRegisterUserAnonymous extends CBackendRequestExecut
 			JSONObject responseUserWalletData = new JSONObject();
 			responseUserWalletData.put(CRequestKeys.mKeyUserWalletDataCreditsNum, defaultValueCreditsNum);
 			responseUserWalletData.put(CRequestKeys.mKeyUserWalletDataJokersNum, defaultValueJockersNum);
-			responseUserWalletData.put(CRequestKeys.mKeyUserWalletDataLivesNum, defaultValueLivesNum);
-			responseUserWalletData.put(CRequestKeys.mKeyUserWalletDataLivesMaxNum, defaultValueLivesMaxNum);
+			responseUserWalletData.put(CRequestKeys.mKeyUserWalletDataTokensNum, defaultValueTokensNum);
 			
 			JSONObject responseUserGameData = new JSONObject();
 			responseUserGameData.put(CRequestKeys.mKeyUserDataLevel, defaultValueUserLevel);

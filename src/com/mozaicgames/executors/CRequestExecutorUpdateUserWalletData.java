@@ -50,10 +50,10 @@ public class CRequestExecutorUpdateUserWalletData extends CBackendRequestExecuto
 				numFieldsUpdated++;
 			}
 			
-			if (jsonData.has(CRequestKeys.mKeyUserWalletDataLivesNum))
+			if (jsonData.has(CRequestKeys.mKeyUserWalletDataTokensNum))
 			{
-				final int deviceLivesNum = jsonData.getInt(CRequestKeys.mKeyUserWalletDataLivesNum);
-				sqlBuilderUpdate.set(CDatabaseKeys.mKeyTableUsersWalletDataLivesNum, Integer.toString(deviceLivesNum));
+				final int deviceTokensNum = jsonData.getInt(CRequestKeys.mKeyUserWalletDataTokensNum);
+				sqlBuilderUpdate.set(CDatabaseKeys.mKeyTableUsersWalletDataTokensNum, Integer.toString(deviceTokensNum));
 				numFieldsUpdated++;
 			}
 			

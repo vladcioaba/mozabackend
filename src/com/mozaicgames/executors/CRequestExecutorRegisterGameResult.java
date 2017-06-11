@@ -14,6 +14,7 @@ import com.mozaicgames.core.CBackendRequestExecutor;
 import com.mozaicgames.core.CBackendRequestExecutorParameters;
 import com.mozaicgames.core.EBackendResponsStatusCode;
 import com.mozaicgames.utils.CBackendQueryGetUserGameData;
+import com.mozaicgames.utils.CBackendQueryGetUserWalletData;
 import com.mozaicgames.utils.CSqlBuilderInsert;
 import com.mozaicgames.utils.CSqlBuilderUpdate;
 
@@ -30,7 +31,9 @@ public class CRequestExecutorRegisterGameResult extends CBackendRequestExecutor
 	{
 		Connection sqlConnection = null;
 		PreparedStatement preparedStatementInsert = null;
-		PreparedStatement preparedStatementUpdate = null;
+		PreparedStatement preparedStatementUpdateData = null;
+		PreparedStatement preparedStatementUpdateWallet = null;
+		
 		try 
 		{
 			sqlConnection = parameters.getSqlDataSource().getConnection();
@@ -48,6 +51,13 @@ public class CRequestExecutorRegisterGameResult extends CBackendRequestExecutor
 			int currentUserLevel = jsonCurrentUserData.getInt(CRequestKeys.mKeyUserDataLevel);
 			int currentUserXp = jsonCurrentUserData.getInt(CRequestKeys.mKeyUserDataXp);
 			int currentUserTrophies = jsonCurrentUserData.getInt(CRequestKeys.mKeyUserDataTrophies);
+			
+			final JSONObject jsonCurrentUserWallet = CBackendQueryGetUserWalletData.getUserGameData(parameters.getUserId(), parameters.getDevicePlatform(), parameters.getSqlDataSource());
+			int currentWalletTokens = jsonCurrentUserWallet.getInt(CRequestKeys.mKeyUserWalletDataTokensNum);
+			int currentWalletJokers = jsonCurrentUserWallet.getInt(CRequestKeys.mKeyUserWalletDataJokersNum);
+			int currentWalletCredits = jsonCurrentUserWallet.getInt(CRequestKeys.mKeyUserWalletDataCreditsNum);
+			
+			
 			JSONArray gamesRewardsVector = new JSONArray(); 
 			
 			for (int i = 0; i < jsonGamesDataArrayLength; i++) 
@@ -108,9 +118,8 @@ public class CRequestExecutorRegisterGameResult extends CBackendRequestExecutor
 					default:
 					case 0: // application closed
 					case 1: // user quit
-						gainedTrophies = -3;
-						break;
 					case 2: // user timeout
+					case 5: // user lost
 						gainedTrophies = -1;
 						break;
 					case 3: // user won
@@ -138,13 +147,14 @@ public class CRequestExecutorRegisterGameResult extends CBackendRequestExecutor
 							}
 						}
 						break;
-					case 5: // user lost
-						gainedTrophies = -1;
-						break;
 				}
 				
 				currentUserTrophies += gainedTrophies;
 				currentUserXp += gainedXp;
+				
+				currentWalletTokens += gainedTokens;
+				currentWalletJokers += gainedJokers;
+				currentWalletCredits += gainedCredits;
 				
 				currentUserTrophies = Math.max(currentUserTrophies, 0);
 				
@@ -171,10 +181,25 @@ public class CRequestExecutorRegisterGameResult extends CBackendRequestExecutor
 							.where(CDatabaseKeys.mKeyTableUsersUserId + "=" + parameters.getUserId());
 			
 			final String strQueryUpdateUsers = sqlBuilderUpdateUserData.toString(); 
-			preparedStatementUpdate = sqlConnection.prepareStatement(strQueryUpdateUsers, PreparedStatement.RETURN_GENERATED_KEYS);
+			preparedStatementUpdateData = sqlConnection.prepareStatement(strQueryUpdateUsers, PreparedStatement.RETURN_GENERATED_KEYS);
 			
-			int affectedRowsUpdate = preparedStatementUpdate.executeUpdate();
-			if (affectedRowsUpdate == 0)
+			final int affectedRowsUpdateData = preparedStatementUpdateData.executeUpdate();
+			if (affectedRowsUpdateData == 0)
+			{
+				throw new SQLException("Nothing updated in database!");
+			}
+			
+			CSqlBuilderUpdate sqlBuilderUpdateUserWallet = new CSqlBuilderUpdate()
+					.table(CDatabaseKeys.mKeyTableUsersWalletDataTableName)
+					.set(CDatabaseKeys.mKeyTableUsersWalletDataTokensNum, Integer.toString(currentWalletTokens))
+					.set(CDatabaseKeys.mKeyTableUsersWalletDataJokersNum, Integer.toString(currentWalletJokers))
+					.set(CDatabaseKeys.mKeyTableUsersWalletDataCreditsNum, Integer.toString(currentWalletCredits))
+					.where(CDatabaseKeys.mKeyTableUsersWalletDataUserId + "=" + parameters.getUserId());
+			
+			final String strQueryUdpdateWallet = sqlBuilderUpdateUserWallet.toString();
+			preparedStatementUpdateWallet = sqlConnection.prepareStatement(strQueryUdpdateWallet, PreparedStatement.RETURN_GENERATED_KEYS);
+			final int affectedRowsUpdateWallet = preparedStatementUpdateWallet.executeUpdate();
+			if (affectedRowsUpdateWallet == 0)
 			{
 				throw new SQLException("Nothing updated in database!");
 			}
@@ -206,11 +231,22 @@ public class CRequestExecutorRegisterGameResult extends CBackendRequestExecutor
 					System.err.println(e.getMessage());
 				}
 			}
-			if (preparedStatementUpdate != null)
+			if (preparedStatementUpdateData != null)
 			{
 				try 
 				{
-					preparedStatementUpdate.close();
+					preparedStatementUpdateData.close();
+				} 
+				catch (SQLException e) 
+				{
+					System.err.println(e.getMessage());
+				}
+			}
+			if (preparedStatementUpdateWallet != null)
+			{
+				try 
+				{
+					preparedStatementUpdateWallet.close();
 				} 
 				catch (SQLException e) 
 				{

@@ -64,6 +64,10 @@ public class CRequestExecutorRegisterSession extends CBackendRequestExecutor
 			final String remoteAddress = parameters.getRemoteAddress();
 			activeSession = parameters.getSessionManager().createSession(deviceId, userId, remoteAddress, devicePlatform);
 		}
+		else if (false == parameters.getSessionManager().isSessionValid(activeSession))
+		{
+			throw new CBackendRequestException(EBackendResponsStatusCode.TOKEN_SESSION_KEY_EXPIRED, "Token expired!");
+		}
 		
 		if (activeSession != null)
 		{
