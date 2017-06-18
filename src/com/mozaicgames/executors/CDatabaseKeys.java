@@ -59,10 +59,19 @@ public class CDatabaseKeys
 	public static final String mKeyTableGameResultsFoundationRank4		= "foundation_rank_4";
 	
 	public static final String mKeyTableSessionTableName				= "sessions";
+	public static final String mKeyTableSessionSessionId				= "session_id";
 	public static final String mKeyTableSessionUserId					= "user_id";
 	public static final String mKeyTableSessionDeviceId					= "device_id";
+	public static final String mKeyTableSessionSessionToken				= "session_token";
 	public static final String mKeyTableSessionCreationDate				= "session_creation_date";
 	public static final String mKeyTableSessionExpireDate				= "session_expire_date";
 	public static final String mKeyTableSessionIp						= "session_ip";
 	public static final String mKeyTableSessionPlatform					= "session_platform";
+	
+	public static final String mKeyTableSessionHistoryTableName			= "sessions_history";
+	public static final String mKeyTableSessionHistorySessionId			= "session_id";
+	public static final String mKeyTableSessionHistorySessionToken		= "session_token";
+	public static final String mKeyTableSessionHistoryCreationDate		= "session_creation_date";
+	public static final String mKeyTableSessionHistoryIp				= "session_ip";
+	public static final String mKeyTableSessionHistoryPlatform			= "session_platform";
 }

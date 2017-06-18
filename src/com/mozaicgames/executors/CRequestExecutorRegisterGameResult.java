@@ -83,6 +83,7 @@ public class CRequestExecutorRegisterGameResult extends CBackendRequestExecutor
 				int gainedTokens = 0;
 				int gainedJokers = 0;
 				int gainedCredits = 1;
+				int gainedLevel = 0;
 				
 				CSqlBuilderInsert sqlBuilderInsert = new CSqlBuilderInsert()
 						.into(CDatabaseKeys.mKeyTableGameResultsTableName)
@@ -128,7 +129,7 @@ public class CRequestExecutorRegisterGameResult extends CBackendRequestExecutor
 						break;
 					case 4: // user won 4k
 						gainedTrophies = 2;
-						gainedTokens = 1 + (int) Math.random();
+						gainedTokens = 1 + Math.random() > 0.5 ? 1 : 0;
 						gainedCredits ++;
 						
 						double randNumber = Math.random();
@@ -161,6 +162,7 @@ public class CRequestExecutorRegisterGameResult extends CBackendRequestExecutor
 				// jsonResponse.put(CRequestKeys.mKeyUserDataLevel, currentUserLevel);
 				JSONObject jsonGameResponse = new JSONObject();
 				jsonGameResponse.put(CRequestKeys.mKeyGameRewardsGainedXp, gainedXp);
+				jsonGameResponse.put(CRequestKeys.mKeyGameRewardsGainedLevel, gainedLevel);
 				jsonGameResponse.put(CRequestKeys.mKeyGameRewardsGainedTrophie, gainedTrophies);			
 				jsonGameResponse.put(CRequestKeys.mKeyGameRewardsGainedCredits, gainedCredits);
 				jsonGameResponse.put(CRequestKeys.mKeyGameRewardsGainedJokers, gainedJokers);
@@ -168,7 +170,6 @@ public class CRequestExecutorRegisterGameResult extends CBackendRequestExecutor
 				
 				gamesRewardsVector.put(jsonGameResponse);
 			}
-			
 			
 			// calculate new user level
 

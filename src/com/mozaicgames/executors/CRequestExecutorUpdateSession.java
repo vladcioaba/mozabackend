@@ -38,6 +38,7 @@ public class CRequestExecutorUpdateSession extends CBackendRequestExecutor
 			throw new CBackendRequestException(EBackendResponsStatusCode.INVALID_DATA, "Invalid input data!");
 		}
 		
+		long sessionId = 0;
 		long deviceId = 0;
 		int userId = 0;
 		boolean createNewSession = false;
@@ -50,22 +51,15 @@ public class CRequestExecutorUpdateSession extends CBackendRequestExecutor
 			CBackendSession lastKnownSession = sessionManager.getLastKnownSessionFor(deviceToken);
 			if (null == lastKnownSession)
 			{
-				throw new CBackendRequestException(EBackendResponsStatusCode.INVALID_TOKEN_SESSION_KEY, "Unknown session token!");
+				throw new CBackendRequestException(EBackendResponsStatusCode.INVALID_TOKEN_SESSION_KEY, "Unknown session token! Register first!");
 			}
 			
 			activeSession = lastKnownSession;
-			createNewSession = true;
-		}
-		else
-		{
-			createNewSession = activeSession.getIp().equals(remoteAddress) == false;	
+			createNewSession = sessionManager.isSessionValid(activeSession) == false;
 		}
 		
-//		if (false == sessionManager.isSessionValid(activeSession))
-//		{
-//			throw new CBackendRequestException(EBackendResponsStatusCode.TOKEN_SESSION_KEY_EXPIRED, "Token expired!");
-//		}
-		
+		createNewSession = activeSession.getIp().equals(remoteAddress) == false;
+		sessionId = activeSession.getId();
 		deviceId = activeSession.getDeviceId();
 		userId = activeSession.getUserId();
 		
@@ -79,7 +73,7 @@ public class CRequestExecutorUpdateSession extends CBackendRequestExecutor
 		final String devicePlatform = validatorResponse.getBody(); 
 		if (createNewSession)
 		{
-			activeSession = sessionManager.createSession(deviceId, userId, remoteAddress, devicePlatform);
+			activeSession = sessionManager.updateSession(sessionId, deviceId, userId, activeSession.getKey(), remoteAddress, devicePlatform);
 		}
 		
 		if (activeSession != null)

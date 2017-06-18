@@ -33,7 +33,7 @@ public class CRequestExecutorUpdateUserGameData extends CBackendRequestExecutor
 			
 			CSqlBuilderUpdate sqlBuilderUpdate = new CSqlBuilderUpdate()
 					.table(CDatabaseKeys.mKeyTableUsersTableName)
-					.where(CDatabaseKeys.mKeyTableUsersTableName + "=" + parameters.getUserId());
+					.where(CDatabaseKeys.mKeyTableUsersUserId + "=" + parameters.getUserId());
 			
 			if (jsonData.has(CRequestKeys.mKeyUserDataLevel))
 			{

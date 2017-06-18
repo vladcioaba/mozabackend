@@ -46,6 +46,7 @@ public class CRequestKeys
 	
 	public static final String mKeyGameRewardsVector				= "game_rewards";
 	public static final String mKeyGameRewardsGainedXp				= "game_rewards_gained_xp";
+	public static final String mKeyGameRewardsGainedLevel			= "game_rewards_gained_level";
 	public static final String mKeyGameRewardsGainedTrophie			= "game_rewards_gained_trophies";
 	public static final String mKeyGameRewardsGainedCredits			= "game_rewards_gained_credits";
 	public static final String mKeyGameRewardsGainedJokers			= "game_rewards_gained_jokers";

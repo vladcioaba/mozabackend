@@ -94,8 +94,14 @@ public class CBackendRequestHandler implements HttpHandler
 		
 		if (continueExecution)
 		{
-			jsonResponseBody = null;			
 			final JSONArray jsonResponseArray = new JSONArray();
+			
+			CBackendSession activeSession = null;
+			String deviceToken = null;
+			long deviceId = 0;
+			int userId = 0;
+			long sessionId = 0;
+			String devicePlatform = "";
 			
 			final int jsonRequestsArrayLength = jsonRequestsArray.length();
 			for (int i = 0; i < jsonRequestsArrayLength; i++) 
@@ -108,8 +114,8 @@ public class CBackendRequestHandler implements HttpHandler
 			    catch (JSONException e) 
 			    {
 			    	// object at index i is not a jsonobject.
-			    	jsonResponseBody = CBackendRequestExecutor.toJSONObject(EBackendResponsStatusCode.INVALID_DATA, "Invalid data format!");
-					break;
+			    	jsonResponseArray.put(CBackendRequestExecutor.toJSONObject(EBackendResponsStatusCode.INVALID_DATA, "Invalid data format!"));
+					continue;
 				}
 	
 			    String strRequestName = null;
@@ -120,8 +126,8 @@ public class CBackendRequestHandler implements HttpHandler
 				catch (JSONException e) 
 				{
 					// object at index i does not have a string name.
-					jsonResponseBody = CBackendRequestExecutor.toJSONObject(EBackendResponsStatusCode.INVALID_DATA, "Invalid data format!");
-					break;
+					jsonResponseArray.put(CBackendRequestExecutor.toJSONObject(EBackendResponsStatusCode.INVALID_DATA, "Invalid data format!"));
+					continue;
 				} 
 				
 				JSONObject jsonRequestData = null;
@@ -139,7 +145,6 @@ public class CBackendRequestHandler implements HttpHandler
 					} 
 					catch (JSONException e1) 
 					{
-						// TODO Auto-generated catch block
 						System.err.println(e1.getMessage());
 					}
 					jsonResponseArray.put(jsonExecutorResponse);
@@ -154,7 +159,6 @@ public class CBackendRequestHandler implements HttpHandler
 				} 
 				catch (JSONException e1) 
 				{
-					// TODO Auto-generated catch block
 					System.err.println(e1.getMessage());
 					continue;
 				}
@@ -167,56 +171,80 @@ public class CBackendRequestHandler implements HttpHandler
 					}
 					CBackendRequestExecutor executor = mExecuters.get(strRequestName);
 				
-					String deviceToken = null;
-					long deviceId = 0;
-					int userId = 0;
-					long sessionId = 0;
-					String devicePlatform = "";
+					boolean updateSessionToken = false;
 					
 					if (executor.isSessionTokenValidationNeeded())
 					{
-						try 
+						if (activeSession != null)
 						{
-							deviceToken = jsonRequestData.getString(CRequestKeys.mKeyClientSessionToken);
-						}		
-						catch (JSONException e)
-						{
-							// bad input
-							// return database connection error - status retry
-							throw new CBackendRequestException(EBackendResponsStatusCode.INVALID_DATA, "Invalid input data!");
-						}
-						
-						CBackendSession activeSession = mSessionManager.getActiveSessionFor(deviceToken);
-						if (activeSession == null)
-						{
-							activeSession = mSessionManager.getLastKnownSessionFor(deviceToken);
-							if (activeSession == null)
-							{
-								throw new CBackendRequestException(EBackendResponsStatusCode.INVALID_TOKEN_SESSION_KEY, "Unknown session token!");
-							}	
-						
 							if (false == mSessionManager.isSessionValid(activeSession))
 							{
-								throw new CBackendRequestException(EBackendResponsStatusCode.TOKEN_SESSION_KEY_EXPIRED, "Token expired!");
+								// the session is updated
+								updateSessionToken = true;
 							}
 						}
+						else
+						{
+							try 
+							{
+								deviceToken = jsonRequestData.getString(CRequestKeys.mKeyClientSessionToken);
+							}		
+							catch (JSONException e)
+							{
+								// bad input
+								// return database connection error - status retry
+								throw new CBackendRequestException(EBackendResponsStatusCode.INVALID_DATA, "Invalid input data!");
+							}
+							
+							activeSession = mSessionManager.getActiveSessionFor(deviceToken);
+							if (activeSession == null)
+							{
+								activeSession = mSessionManager.getLastKnownSessionFor(deviceToken);
+								if (activeSession == null)
+								{
+									throw new CBackendRequestException(EBackendResponsStatusCode.INVALID_TOKEN_SESSION_KEY, "Unknown session token!");
+								}	
+							
+								if (false == mSessionManager.isSessionValid(activeSession))
+								{
+									// the session is updated
+									updateSessionToken = true;
+								}
+							}
+						}
+					}
 
+					if (activeSession != null)
+					{
+						sessionId = activeSession.getId();						
+						deviceId = activeSession.getDeviceId();
+						userId = activeSession.getUserId();			
 						if (activeSession.getIp().equals(remoteAddress) == false)
 						{
-							throw new CBackendRequestException(EBackendResponsStatusCode.TOKEN_SESSION_KEY_EXPIRED, "Unknown session token!");
+							updateSessionToken = true;
 						}
 						
-						deviceId = activeSession.getDeviceId();
-						userId = activeSession.getUserId();
-						sessionId = activeSession.getId();
+						// if there is no active session there's no device
 						final CBackendQueryValidateDevice validatorDevice = new CBackendQueryValidateDevice(mSqlDataSource, deviceId);
 						final CBackendQueryResponse validatorResponse = validatorDevice.execute();		
 						if (validatorResponse.getCode() != EBackendResponsStatusCode.STATUS_OK)
 						{
 							throw new CBackendRequestException(validatorResponse.getCode(), validatorResponse.getBody());
 						}
-						
 						devicePlatform = validatorResponse.getBody();
+						
+						if (updateSessionToken)
+						{
+							activeSession = mSessionManager.updateSession(sessionId, deviceId, userId, activeSession.getKey(), remoteAddress, devicePlatform);			
+							try 
+							{
+								jsonExecutorResponse.put(CRequestKeys.mKeyClientSessionToken, activeSession.getKey());
+							} 
+							catch (JSONException e) 
+							{
+								throw new CBackendRequestException(EBackendResponsStatusCode.INTERNAL_ERROR, "Ex: " + e.getMessage());
+							}
+						}
 					}
 					
 					final CBackendRequestExecutorParameters parameters = new CBackendRequestExecutorParameters(
@@ -257,10 +285,7 @@ public class CBackendRequestHandler implements HttpHandler
 				jsonResponseArray.put(jsonExecutorResponse);
 			}
 			
-			if (jsonResponseBody == null)
-			{
-				jsonResponseBody = CBackendRequestExecutor.toJSONObject(EBackendResponsStatusCode.STATUS_OK, jsonResponseArray);
-			}
+			jsonResponseBody = CBackendRequestExecutor.toJSONObject(EBackendResponsStatusCode.STATUS_OK, jsonResponseArray);
 		}
 		
 		// write response to string

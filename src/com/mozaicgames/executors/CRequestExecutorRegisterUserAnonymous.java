@@ -114,7 +114,7 @@ public class CRequestExecutorRegisterUserAnonymous extends CBackendRequestExecut
 			
 			final String defaultValueMagnetOn = "1";
 			final String defaultValueLeftHandedOn = "0";
-			final String defaultValueMusicOn = "1";
+			final String defaultValueMusicOn = "0";
 			final String defaultValueSfxOn = "1";
 			
 			final CSqlBuilderInsert sqlBuilderInsertNewUserSettings = new CSqlBuilderInsert()
