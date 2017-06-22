@@ -257,6 +257,7 @@ public class CBackendRequestHandler implements HttpHandler
 							userId,
 							deviceId,
 							sessionId,
+							deviceToken,
 							devicePlatform);
 											
 					final JSONObject jsonResult = executor.execute(jsonRequestData, parameters);

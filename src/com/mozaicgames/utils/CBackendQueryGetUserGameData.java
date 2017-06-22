@@ -46,10 +46,12 @@ public class CBackendQueryGetUserGameData
 				final int dataUserLevel = response.getInt(1);
 				final int dataUserXp = response.getInt(2);
 				final int dataUserTrophies = response.getInt(3);
+				final int dataUserLevelMaxXp = (int) (100 * Math.pow(dataUserLevel, 2) - 1);
 				
 				JSONObject responseUserData = new JSONObject();
 				responseUserData.put(CRequestKeys.mKeyUserDataLevel, dataUserLevel);
 				responseUserData.put(CRequestKeys.mKeyUserDataXp, dataUserXp);
+				responseUserData.put(CRequestKeys.mKeyUserDataLevelMaxXp, dataUserLevelMaxXp);
 				responseUserData.put(CRequestKeys.mKeyUserDataTrophies, dataUserTrophies);
 				return responseUserData;
 			}

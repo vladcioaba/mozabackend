@@ -78,7 +78,7 @@ public class CRequestExecutorRegisterGameResult extends CBackendRequestExecutor
 				final int foundationRank2 = jsonGameData.getInt(CRequestKeys.mKeyGameFoundationRank2);
 				final int foundationRank3 = jsonGameData.getInt(CRequestKeys.mKeyGameFoundationRank3);
 				final int foundationRank4 = jsonGameData.getInt(CRequestKeys.mKeyGameFoundationRank4);
-				final int gainedXp = 1 + foundationRank1 + foundationRank2 + foundationRank3 + foundationRank4 + gameDuration / 10;
+				final int gainedXp = 1 + foundationRank1 + foundationRank2 + foundationRank3 + foundationRank4 + Math.min(gameDuration, 360) / 10;
 				int gainedTrophies = 0;
 				int gainedTokens = 0;
 				int gainedJokers = 0;
@@ -87,7 +87,7 @@ public class CRequestExecutorRegisterGameResult extends CBackendRequestExecutor
 				
 				CSqlBuilderInsert sqlBuilderInsert = new CSqlBuilderInsert()
 						.into(CDatabaseKeys.mKeyTableGameResultsTableName)
-						.value(CDatabaseKeys.mKeyTableGameResultsSessionId, Long.toString(parameters.getSessionId()))
+						.value(CDatabaseKeys.mKeyTableGameResultsSessionToken, parameters.getSessionToken())
 						.value(CDatabaseKeys.mKeyTableGameResultsUserId, Integer.toString(parameters.getUserId()))
 						.value(CDatabaseKeys.mKeyTableGameResultsCreationDate, creationTime.toString())
 						.value(CDatabaseKeys.mKeyTableGameResultsType, Integer.toString(gameType))
@@ -99,7 +99,6 @@ public class CRequestExecutorRegisterGameResult extends CBackendRequestExecutor
 						.value(CDatabaseKeys.mKeyTableGameResultsUsedActionsNum, Integer.toString(numUsedActions))
 						.value(CDatabaseKeys.mKeyTableGameResultsUsedHintsNum, Integer.toString(numUsedHints))
 						.value(CDatabaseKeys.mKeyTableGameResultsUsedJokersNum, Integer.toString(numUsedJockers))
-						.value(CDatabaseKeys.mKeyTableGameResultsGainedXp, Integer.toString(gainedXp))
 						.value(CDatabaseKeys.mKeyTableGameResultsFoundationRank1, Integer.toString(foundationRank1))
 						.value(CDatabaseKeys.mKeyTableGameResultsFoundationRank2, Integer.toString(foundationRank2))
 						.value(CDatabaseKeys.mKeyTableGameResultsFoundationRank3, Integer.toString(foundationRank3))
@@ -159,20 +158,29 @@ public class CRequestExecutorRegisterGameResult extends CBackendRequestExecutor
 				
 				currentUserTrophies = Math.max(currentUserTrophies, 0);
 				
+				// calculate new user level
+				int maxXpForThisLevel = (int) (100 * Math.pow(currentUserLevel, 2) - 1);
+				while (currentUserXp > maxXpForThisLevel)
+				{
+					gainedLevel ++;
+					maxXpForThisLevel = (int) (100 * Math.pow(currentUserLevel + gainedLevel, 2) - 1);
+				}
+				
+				currentUserLevel += gainedLevel;
+				
 				// jsonResponse.put(CRequestKeys.mKeyUserDataLevel, currentUserLevel);
 				JSONObject jsonGameResponse = new JSONObject();
 				jsonGameResponse.put(CRequestKeys.mKeyGameRewardsGainedXp, gainedXp);
 				jsonGameResponse.put(CRequestKeys.mKeyGameRewardsGainedLevel, gainedLevel);
+				jsonGameResponse.put(CRequestKeys.mKeyGameRewardsGainedLevelMaxXp, maxXpForThisLevel);
 				jsonGameResponse.put(CRequestKeys.mKeyGameRewardsGainedTrophie, gainedTrophies);			
 				jsonGameResponse.put(CRequestKeys.mKeyGameRewardsGainedCredits, gainedCredits);
 				jsonGameResponse.put(CRequestKeys.mKeyGameRewardsGainedJokers, gainedJokers);
 				jsonGameResponse.put(CRequestKeys.mKeyGameRewardsGainedTokens, gainedTokens);
 				
+				
 				gamesRewardsVector.put(jsonGameResponse);
 			}
-			
-			// calculate new user level
-
 			
 			CSqlBuilderUpdate sqlBuilderUpdateUserData = new CSqlBuilderUpdate()
 							.table(CDatabaseKeys.mKeyTableUsersTableName)

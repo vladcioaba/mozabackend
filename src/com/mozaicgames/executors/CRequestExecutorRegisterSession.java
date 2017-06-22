@@ -37,7 +37,7 @@ public class CRequestExecutorRegisterSession extends CBackendRequestExecutor
 		// decrypt device id from token
 		long deviceId = 0;
 		int userId = 0;
-		try 
+		try
 		{
 			deviceId = Long.parseLong(encripter.decrypt(deviceToken));
 			userId = Integer.parseInt(encripter.decrypt(userToken));

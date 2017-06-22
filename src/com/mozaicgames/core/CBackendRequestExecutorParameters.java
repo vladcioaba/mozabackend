@@ -17,6 +17,7 @@ public class CBackendRequestExecutorParameters
 	private final int									mUserId;
 	private final long									mDeviceId;
 	private final long									mSessionId;
+	private final String								mSessionToken;
 	private final String								mDevicePlatform;
 	
 	public CBackendRequestExecutorParameters(final String remoteAddress,
@@ -28,6 +29,7 @@ public class CBackendRequestExecutorParameters
 											 final int userId,
 											 final long deviceId,
 											 final long sessionId,
+											 final String sessionToken,
 											 final String devicePlatform)
 	{
 		mRemoteAddress = remoteAddress;
@@ -39,6 +41,7 @@ public class CBackendRequestExecutorParameters
 		mUserId = userId;
 		mDeviceId = deviceId;
 		mSessionId = sessionId;
+		mSessionToken = sessionToken;
 		mDevicePlatform = devicePlatform;
 	}
 	
@@ -85,6 +88,11 @@ public class CBackendRequestExecutorParameters
 	public long getSessionId()
 	{
 		return mSessionId;
+	}
+	
+	public String getSessionToken()
+	{
+		return mSessionToken;
 	}
 	
 	public String getDevicePlatform()

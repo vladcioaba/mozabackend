@@ -40,7 +40,7 @@ public class CDatabaseKeys
 	public static final String mKeyTableDevicesDeviceBlocked			= "device_blocked";
 	
 	public static final String mKeyTableGameResultsTableName 			= "game_results";
-	public static final String mKeyTableGameResultsSessionId 			= "session_id";
+	public static final String mKeyTableGameResultsSessionToken 		= "session_token";
 	public static final String mKeyTableGameResultsUserId	 			= "user_id";
 	public static final String mKeyTableGameResultsCreationDate			= "creation_date";
 	public static final String mKeyTableGameResultsType		 			= "type";
@@ -52,7 +52,6 @@ public class CDatabaseKeys
 	public static final String mKeyTableGameResultsUsedActionsNum		= "used_actions_num";
 	public static final String mKeyTableGameResultsUsedHintsNum			= "used_hints_num";
 	public static final String mKeyTableGameResultsUsedJokersNum		= "used_jokers_num";
-	public static final String mKeyTableGameResultsGainedXp				= "gained_xp";
 	public static final String mKeyTableGameResultsFoundationRank1		= "foundation_rank_1";
 	public static final String mKeyTableGameResultsFoundationRank2		= "foundation_rank_2";
 	public static final String mKeyTableGameResultsFoundationRank3		= "foundation_rank_3";
