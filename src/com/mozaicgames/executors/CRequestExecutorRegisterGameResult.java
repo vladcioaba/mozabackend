@@ -118,16 +118,16 @@ public class CRequestExecutorRegisterGameResult extends CBackendRequestExecutor
 					default:
 					case 0: // application closed
 					case 1: // user quit
-					case 2: // user timeout
-					case 5: // user lost
-						gainedTrophies = -1;
+					case 2: // user lost
+					case 5: // user lost - all opponents won 4k
+						gainedTrophies = -12;
 						break;
 					case 3: // user won
-						gainedTrophies = 1;
+						gainedTrophies = 11;
 						gainedTokens = 1;
 						break;
 					case 4: // user won 4k
-						gainedTrophies = 2;
+						gainedTrophies = 21;
 						gainedTokens = 1 + Math.random() > 0.5 ? 1 : 0;
 						gainedCredits ++;
 						
