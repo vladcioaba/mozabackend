@@ -101,9 +101,7 @@ public class CBackendSessionManager
 					.column(CDatabaseKeys.mKeyTableSessionIp)
 					.column(CDatabaseKeys.mKeyTableSessionPlatform)
 					.from(CDatabaseKeys.mKeyTableSessionTableName)
-					.where(CDatabaseKeys.mKeyTableSessionSessionToken + "='" + sessionKey+"'")
-					.orderBy(CDatabaseKeys.mKeyTableSessionExpireDate)
-					.orderType("desc").limit(1);
+					.where(CDatabaseKeys.mKeyTableSessionSessionToken + "='" + sessionKey+"'");
 
 			// find the session in the database first
 			final String strQuerySelect = sqlBuilderSelect.toString();
@@ -134,7 +132,7 @@ public class CBackendSessionManager
 			// return database connection error - status retry
 			System.err.println("Register handler Null pointer exception: " + e.getMessage());
 		} 
-		finally 
+		finally
 		{
 			if (preparedStatementSelect != null) 
 			{
@@ -194,9 +192,7 @@ public class CBackendSessionManager
 					.column(CDatabaseKeys.mKeyTableSessionPlatform)
 					.from(CDatabaseKeys.mKeyTableSessionTableName)
 					.where(CDatabaseKeys.mKeyTableSessionDeviceId + "=" + deviceId)
-					.where(CDatabaseKeys.mKeyTableSessionUserId + "=" + userId)
-					.orderBy(CDatabaseKeys.mKeyTableSessionCreationDate)
-					.orderType("desc").limit(1);
+					.where(CDatabaseKeys.mKeyTableSessionUserId + "=" + userId);
 
 			// find the session in the database first
 			final String strQuerySelect = sqlBuilderSelect.toString();

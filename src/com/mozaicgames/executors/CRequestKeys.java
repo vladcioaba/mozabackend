@@ -35,6 +35,9 @@ public class CRequestKeys
 	public static final String mKeyGameSeed							= "game_seed";
 	public static final String mKeyGameSeedSource					= "game_seed_source";
 	public static final String mKeyGameDuration						= "game_duration";
+	public static final String mKeyGamePlayerPlace					= "game_player_place";
+	public static final String mKeyGamePlayerScore					= "game_player_score";
+	public static final String mKeyGamePlayerStars					= "game_player_stars";
 	public static final String mKeyGameFinishResult					= "game_complete_result";
 	public static final String mKeyGameDeckRefreshNum				= "game_deck_refresh_num";
 	public static final String mKeyGameActionsUsedNum				= "game_actions_used_num";
@@ -53,4 +56,7 @@ public class CRequestKeys
 	public static final String mKeyGameRewardsGainedCredits			= "game_rewards_gained_credits";
 	public static final String mKeyGameRewardsGainedJokers			= "game_rewards_gained_jokers";
 	public static final String mKeyGameRewardsGainedTokens			= "game_rewards_gained_tokens";
+	public static final String mKeyGameRewardsGainedPlace			= "game_rewards_gained_place";
+	public static final String mKeyGameRewardsGainedScore			= "game_rewards_gained_score";
+	public static final String mKeyGameRewardsGainedStars			= "game_rewards_gained_stars";
 }

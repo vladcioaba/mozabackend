@@ -68,6 +68,9 @@ public class CRequestExecutorRegisterGameResult extends CBackendRequestExecutor
 				final int gameType = jsonGameData.getInt(CRequestKeys.mKeyGameType);
 				final String gameSeed = jsonGameData.getString(CRequestKeys.mKeyGameSeed);
 				final int gameSeedSource = jsonGameData.getInt(CRequestKeys.mKeyGameSeedSource);
+				int playerPlace = jsonGameData.getInt(CRequestKeys.mKeyGamePlayerPlace);
+				final int playerScore = jsonGameData.getInt(CRequestKeys.mKeyGamePlayerScore);
+				final int playerStars = jsonGameData.getInt(CRequestKeys.mKeyGamePlayerStars);
 				final int gameDuration = jsonGameData.getInt(CRequestKeys.mKeyGameDuration);
 				final int gameReuslt = jsonGameData.getInt(CRequestKeys.mKeyGameFinishResult);
 				final int numDeckRefreshed = jsonGameData.getInt(CRequestKeys.mKeyGameDeckRefreshNum);
@@ -84,6 +87,7 @@ public class CRequestExecutorRegisterGameResult extends CBackendRequestExecutor
 				int gainedJokers = 0;
 				int gainedCredits = 1;
 				int gainedLevel = 0;
+				boolean isFoundation4k = foundationRank1 == 14 && foundationRank2 == 14 && foundationRank3 == 14 && foundationRank4 == 14;
 				
 				CSqlBuilderInsert sqlBuilderInsert = new CSqlBuilderInsert()
 						.into(CDatabaseKeys.mKeyTableGameResultsTableName)
@@ -92,6 +96,9 @@ public class CRequestExecutorRegisterGameResult extends CBackendRequestExecutor
 						.value(CDatabaseKeys.mKeyTableGameResultsCreationDate, creationTime.toString())
 						.value(CDatabaseKeys.mKeyTableGameResultsType, Integer.toString(gameType))
 						.value(CDatabaseKeys.mKeyTableGameResultsSeed, gameSeed)
+						.value(CDatabaseKeys.mKeyTableGameResultsPlayerPlace, Integer.toString(playerPlace))
+						.value(CDatabaseKeys.mKeyTableGameResultsPlayerScore, Integer.toString(playerScore))
+						.value(CDatabaseKeys.mKeyTableGameResultsPlayerStars, Integer.toString(playerStars))
 						.value(CDatabaseKeys.mKeyTableGameResultsSeedSource, Integer.toString(gameSeedSource))
 						.value(CDatabaseKeys.mKeyTableGameResultsDuration, Integer.toString(gameDuration))
 						.value(CDatabaseKeys.mKeyTableGameResultsCompleteResult, Integer.toString(gameReuslt))
@@ -118,35 +125,73 @@ public class CRequestExecutorRegisterGameResult extends CBackendRequestExecutor
 					default:
 					case 0: // application closed
 					case 1: // user quit
-					case 2: // user lost
-					case 5: // user lost - all opponents won 4k
 						gainedTrophies = -12;
+						playerPlace = 4;
 						break;
-					case 3: // user won
-						gainedTrophies = 11;
-						gainedTokens = 1;
-						break;
-					case 4: // user won 4k
-						gainedTrophies = 21;
-						gainedTokens = 1 + Math.random() > 0.5 ? 1 : 0;
-						gainedCredits ++;
+
+					case 2: // user finished
 						
-						double randNumber = Math.random();
-						if (randNumber < 0.5)
+						if (playerPlace == 1)
 						{
-							gainedCredits ++;
-							if (randNumber < 0.1)
+							// user finished first
+							gainedTrophies = 11;
+							gainedTokens = 1;
+							double randNumber = Math.random();
+							if (randNumber < 0.5)
 							{
-								gainedCredits ++;
-								gainedJokers ++;
-								
-								if (randNumber < 0.05)
+								gainedTokens ++;
+								if (randNumber < 0.2)
 								{
-									gainedJokers ++;
+									gainedCredits ++;
 								}
 							}
 						}
-						break;
+						else  if (playerPlace == 2)
+						{
+							// user finished second
+							gainedTrophies = 6;
+							gainedTokens = 1;
+						}
+						else
+						{
+							// user lost
+							gainedTrophies = -12;
+						}
+						
+						if (isFoundation4k)
+						{
+							gainedTrophies += 10;
+							gainedCredits ++;
+							
+							double randNumber = Math.random();
+							if (randNumber < 0.5)
+							{
+								gainedCredits ++;
+								
+								if (numUsedJockers > 3)
+								{
+									gainedJokers ++;
+								}
+								
+								if (randNumber < 0.2)
+								{
+									gainedCredits ++;
+									gainedJokers ++;
+									
+									if (randNumber < 0.1)
+									{
+										gainedJokers ++;
+										
+										if (randNumber < 0.05)
+										{
+											gainedJokers ++;
+										}
+									}
+								}
+							}
+						}
+						
+						break;						
 				}
 				
 				currentUserTrophies += gainedTrophies;
@@ -163,6 +208,7 @@ public class CRequestExecutorRegisterGameResult extends CBackendRequestExecutor
 				while (currentUserXp > maxXpForThisLevel)
 				{
 					gainedLevel ++;
+					currentUserXp -= maxXpForThisLevel;
 					maxXpForThisLevel = (int) (100 * Math.pow(currentUserLevel + gainedLevel, 2) - 1);
 				}
 				
@@ -177,7 +223,9 @@ public class CRequestExecutorRegisterGameResult extends CBackendRequestExecutor
 				jsonGameResponse.put(CRequestKeys.mKeyGameRewardsGainedCredits, gainedCredits);
 				jsonGameResponse.put(CRequestKeys.mKeyGameRewardsGainedJokers, gainedJokers);
 				jsonGameResponse.put(CRequestKeys.mKeyGameRewardsGainedTokens, gainedTokens);
-				
+				jsonGameResponse.put(CRequestKeys.mKeyGameRewardsGainedPlace, playerPlace);
+				jsonGameResponse.put(CRequestKeys.mKeyGameRewardsGainedScore, playerScore);
+				jsonGameResponse.put(CRequestKeys.mKeyGameRewardsGainedStars, playerStars);
 				
 				gamesRewardsVector.put(jsonGameResponse);
 			}

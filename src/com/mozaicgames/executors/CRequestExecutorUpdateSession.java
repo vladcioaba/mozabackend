@@ -58,7 +58,10 @@ public class CRequestExecutorUpdateSession extends CBackendRequestExecutor
 			createNewSession = sessionManager.isSessionValid(activeSession) == false;
 		}
 		
-		createNewSession = activeSession.getIp().equals(remoteAddress) == false;
+		if (false == createNewSession)
+		{
+			createNewSession = activeSession.getIp().equals(remoteAddress) == false;
+		}
 		sessionId = activeSession.getId();
 		deviceId = activeSession.getDeviceId();
 		userId = activeSession.getUserId();

@@ -43,6 +43,9 @@ public class CDatabaseKeys
 	public static final String mKeyTableGameResultsSessionToken 		= "session_token";
 	public static final String mKeyTableGameResultsUserId	 			= "user_id";
 	public static final String mKeyTableGameResultsCreationDate			= "creation_date";
+	public static final	String mKeyTableGameResultsPlayerPlace			= "player_place";
+	public static final	String mKeyTableGameResultsPlayerScore			= "player_score";
+	public static final	String mKeyTableGameResultsPlayerStars			= "player_stars";
 	public static final String mKeyTableGameResultsType		 			= "type";
 	public static final String mKeyTableGameResultsSeed		 			= "seed";
 	public static final String mKeyTableGameResultsSeedSource 			= "seed_source";
