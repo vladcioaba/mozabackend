@@ -135,12 +135,11 @@ public class CRequestExecutorRegisterGameResult extends CBackendRequestExecutor
 						{
 							// user finished first
 							gainedTrophies = 11;
-							gainedTokens = 1;
 							double randNumber = Math.random();
-							if (randNumber < 0.5)
+							if (randNumber < 0.6)
 							{
 								gainedTokens ++;
-								if (randNumber < 0.2)
+								if (randNumber < 0.3)
 								{
 									gainedCredits ++;
 								}
@@ -150,7 +149,11 @@ public class CRequestExecutorRegisterGameResult extends CBackendRequestExecutor
 						{
 							// user finished second
 							gainedTrophies = 6;
-							gainedTokens = 1;
+							double randNumber = Math.random();
+							if (randNumber < 0.3)
+							{
+								gainedTokens ++;
+							}
 						}
 						else
 						{
