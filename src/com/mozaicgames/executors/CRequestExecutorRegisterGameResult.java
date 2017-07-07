@@ -129,7 +129,10 @@ public class CRequestExecutorRegisterGameResult extends CBackendRequestExecutor
 						playerPlace = 4;
 						break;
 
-					case 2: // user finished
+					case 2: // user finished out of time
+					case 3: // user finished freeze
+					case 4: // user finished freeze then quit
+					case 5: // user finished foundation complete
 						
 						if (playerPlace == 1)
 						{
