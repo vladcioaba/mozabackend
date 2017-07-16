@@ -14,6 +14,7 @@ import com.mozaicgames.utils.CBackendQueryResponse;
 import com.mozaicgames.utils.CBackendQueryValidateDevice;
 import com.mozaicgames.utils.CBackendSession;
 import com.mozaicgames.utils.CBackendSessionManager;
+import com.mozaicgames.utils.CBackendUpdateUserLastLoginDate;
 
 public class CRequestExecutorUpdateSession extends CBackendRequestExecutor
 {
@@ -77,6 +78,14 @@ public class CRequestExecutorUpdateSession extends CBackendRequestExecutor
 		if (createNewSession)
 		{
 			activeSession = sessionManager.updateSession(sessionId, deviceId, userId, activeSession.getKey(), remoteAddress, devicePlatform);
+		}
+		
+		// update user last login date
+		final CBackendUpdateUserLastLoginDate updateLastLoginQuerry = new CBackendUpdateUserLastLoginDate(parameters.getSqlDataSource(), userId);		
+		final CBackendQueryResponse updateLoginDateResponse = updateLastLoginQuerry.execute();
+		if (updateLoginDateResponse.getCode() != EBackendResponsStatusCode.STATUS_OK)
+		{
+			throw new CBackendRequestException(validatorResponse.getCode(), validatorResponse.getBody());
 		}
 		
 		if (activeSession != null)

@@ -8,6 +8,7 @@ public class CDatabaseKeys
 	public static final String mKeyTableUsersUserLevel					= "user_level";
 	public static final String mKeyTableUsersUserXp						= "user_xp";
 	public static final String mKeyTableUsersUserTrophies				= "user_trophies";
+	public static final String mKeyTableUsersUserLastLoginDate			= "user_lastlogin_date";
 	
 	public static final String mKeyTableUsersSettingsTableName			= "users_settings";
 	public static final String mKeyTableUsersSettingsId 				= "settings_id";	
