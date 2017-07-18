@@ -158,6 +158,11 @@ public class CRequestExecutorRegisterGameResult extends CBackendRequestExecutor
 								gainedCredits ++;
 							}
 						}
+						else if (playerPlace == 3)
+						{
+							// user lost
+							gainedTrophies = -6;
+						}
 						else
 						{
 							// user lost
